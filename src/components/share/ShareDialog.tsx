@@ -10,6 +10,7 @@ import {
   Upload,
   X,
 } from 'lucide-react'
+import { useI18n } from '../../i18n'
 import { downloadDataUrl, downloadText } from '../../lib/download'
 import {
   buildFlowImageFileName,
@@ -39,6 +40,7 @@ export function ShareDialog({
   onClose,
   onOpenTextExport,
 }: ShareDialogProps) {
+  const { t } = useI18n()
   const title = useStoryStore((state) => state.title)
   const variables = useStoryStore((state) => state.variables)
   const nodes = useStoryStore((state) => state.nodes)
@@ -76,19 +78,20 @@ export function ShareDialog({
         buildFlowImageFileName(title),
       )
       if (!result.saved) {
-        setNotice({ type: 'info', text: '已取消保存图片。' })
+        setNotice({ type: 'info', text: t('share.cancelledImage') })
         return
       }
       setNotice({
         type: 'success',
         text: window.galflowDesktop
-          ? '流程图长图已保存到你选择的位置。'
-          : '流程图长图已生成并开始下载，文件在系统下载文件夹中。',
+          ? t('share.imageSavedDesktop')
+          : t('share.imageSavedBrowser'),
       })
     } catch (error) {
       setNotice({
         type: 'error',
-        text: error instanceof Error ? error.message : '图片生成失败',
+        text:
+          error instanceof Error ? error.message : t('share.imageError'),
       })
     } finally {
       setBusy(null)
@@ -105,19 +108,20 @@ export function ShareDialog({
         'application/json;charset=utf-8',
       )
       if (!result.saved) {
-        setNotice({ type: 'info', text: '已取消保存工程文件。' })
+        setNotice({ type: 'info', text: t('share.cancelledProject') })
         return
       }
       setNotice({
         type: 'success',
         text: window.galflowDesktop
-          ? '工程文件已保存。朋友在 GalFlow 中导入后即可继续编辑。'
-          : '工程文件已生成。朋友在 GalFlow 中导入后即可继续编辑。',
+          ? t('share.projectSavedDesktop')
+          : t('share.projectSavedBrowser'),
       })
     } catch (error) {
       setNotice({
         type: 'error',
-        text: error instanceof Error ? error.message : '工程文件生成失败',
+        text:
+          error instanceof Error ? error.message : t('share.projectError'),
       })
     } finally {
       setBusy(null)
@@ -137,13 +141,13 @@ export function ShareDialog({
     setNotice(null)
 
     if (file.size > MAX_PROJECT_FILE_BYTES) {
-      setNotice({ type: 'error', text: '工程文件过大，无法导入' })
+      setNotice({ type: 'error', text: t('share.projectTooLarge') })
       return
     }
 
     if (
       nodes.length > 0 &&
-      !window.confirm('导入工程会替换当前画布上的全部内容，确定继续吗？')
+      !window.confirm(t('share.confirmImport'))
     ) {
       return
     }
@@ -154,7 +158,10 @@ export function ShareDialog({
       importStory(snapshot)
       setNotice({
         type: 'success',
-        text: `导入成功：${snapshot.nodes.length} 个节点、${snapshot.edges.length} 条连线。`,
+        text: t('share.importSuccess', {
+          nodes: snapshot.nodes.length,
+          edges: snapshot.edges.length,
+        }),
       })
       window.setTimeout(() => {
         fitView({ padding: 0.22, duration: 260 })
@@ -162,7 +169,8 @@ export function ShareDialog({
     } catch (error) {
       setNotice({
         type: 'error',
-        text: error instanceof Error ? error.message : '工程文件导入失败',
+        text:
+          error instanceof Error ? error.message : t('share.importError'),
       })
     } finally {
       setBusy(null)
@@ -187,27 +195,39 @@ export function ShareDialog({
             <Share2 size={20} />
           </span>
           <div className="share-dialog__heading">
-            <h2 id="share-dialog-title">分享剧情</h2>
-            <p>图片用来给别人看，工程文件用来和别人一起改。</p>
+            <h2 id="share-dialog-title">{t('share.title')}</h2>
+            <p>{t('share.subtitle')}</p>
           </div>
           <button
             type="button"
             className="icon-button icon-button--soft"
             onClick={onClose}
-            aria-label="关闭分享窗"
+            aria-label={t('share.closeAria')}
           >
             <X size={18} />
           </button>
         </header>
 
         <div className="share-dialog__summary">
-          <span>{title.trim() || '未命名剧情'}</span>
+          <span>{title.trim() || t('share.untitled')}</span>
           <span className="share-dialog__dot" />
-          <span>{stats.sceneCount} 个剧情块</span>
-          <span>{stats.choiceCount} 个选项节点</span>
-          <span>{stats.conditionCount} 个条件节点</span>
-          <span>{variables.length} 个变量</span>
-          <span>{edges.length} 条连线</span>
+          <span>
+            {t('share.summaryScenes', { count: stats.sceneCount })}
+          </span>
+          <span>
+            {t('share.summaryChoices', { count: stats.choiceCount })}
+          </span>
+          <span>
+            {t('share.summaryConditions', {
+              count: stats.conditionCount,
+            })}
+          </span>
+          <span>
+            {t('share.summaryVariables', { count: variables.length })}
+          </span>
+          <span>
+            {t('share.summaryEdges', { count: edges.length })}
+          </span>
         </div>
 
         <div className="share-dialog__cards">
@@ -215,12 +235,11 @@ export function ShareDialog({
             <span className="share-card__icon">
               <ImageIcon size={20} />
             </span>
-            <h3>流程图长图</h3>
-            <p>
-              把整张流程图渲染成高清 PNG，包含所有分支和连线。朋友不需要安装
-              GalFlow，打开图片就能看懂。
-            </p>
-            <span className="share-card__meta">完整画布 · PNG 图片</span>
+            <h3>{t('share.imageTitle')}</h3>
+            <p>{t('share.imageDescription')}</p>
+            <span className="share-card__meta">
+              {t('share.imageMeta')}
+            </span>
             <button
               type="button"
               className="button button--primary share-card__button"
@@ -232,7 +251,9 @@ export function ShareDialog({
               ) : (
                 <Download size={16} />
               )}
-              {busy === 'image' ? '正在生成…' : '生成并下载图片'}
+              {busy === 'image'
+                ? t('share.imageBusy')
+                : t('share.imageAction')}
             </button>
           </article>
 
@@ -240,12 +261,11 @@ export function ShareDialog({
             <span className="share-card__icon">
               <FileJson size={20} />
             </span>
-            <h3>工程文件</h3>
-            <p>
-              保存为 <code>.galflow.json</code>。对方在 GalFlow
-              里导入后，节点、选项、变量、条件和连线都可以继续编辑。
-            </p>
-            <span className="share-card__meta">可编辑 · GalFlow 工程文件</span>
+            <h3>{t('share.projectTitle')}</h3>
+            <p>{t('share.projectDescription')}</p>
+            <span className="share-card__meta">
+              {t('share.projectMeta')}
+            </span>
             <div className="share-card__actions">
               <button
                 type="button"
@@ -254,7 +274,7 @@ export function ShareDialog({
                 disabled={busy !== null || nodes.length === 0}
               >
                 <Download size={15} />
-                导出工程
+                {t('share.projectExport')}
               </button>
               <button
                 type="button"
@@ -267,7 +287,7 @@ export function ShareDialog({
                 ) : (
                   <Upload size={15} />
                 )}
-                导入工程
+                {t('share.projectImport')}
               </button>
             </div>
             <input
@@ -283,11 +303,9 @@ export function ShareDialog({
             <span className="share-card__icon">
               <FileText size={20} />
             </span>
-            <h3>纯文本剧本</h3>
-            <p>
-              导出流程大纲、场景正文和待补全清单。适合直接发给编剧伙伴阅读，或者粘贴到文档里继续写。
-            </p>
-            <span className="share-card__meta">可阅读 · TXT 文本</span>
+            <h3>{t('share.textTitle')}</h3>
+            <p>{t('share.textDescription')}</p>
+            <span className="share-card__meta">{t('share.textMeta')}</span>
             <button
               type="button"
               className="button button--ghost share-card__button"
@@ -298,7 +316,7 @@ export function ShareDialog({
               disabled={busy !== null || nodes.length === 0}
             >
               <FileText size={15} />
-              打开文本导出
+              {t('share.textAction')}
             </button>
           </article>
         </div>
@@ -313,8 +331,8 @@ export function ShareDialog({
         )}
 
         <footer className="share-dialog__footer">
-          <span>图片适合展示，工程文件适合协作。</span>
-          <span>所有文件都在本机生成，不会上传。</span>
+          <span>{t('share.footerTip')}</span>
+          <span>{t('share.footerLocal')}</span>
         </footer>
       </div>
     </div>

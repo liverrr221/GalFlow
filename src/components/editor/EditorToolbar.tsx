@@ -10,6 +10,7 @@ import {
   Underline,
   Undo2,
 } from 'lucide-react'
+import { useI18n, type TranslationKey } from '../../i18n'
 
 interface EditorToolbarProps {
   active: Record<string, boolean>
@@ -19,28 +20,28 @@ interface EditorToolbarProps {
 interface ToolButton {
   command: string
   value?: string
-  label: string
+  labelKey: TranslationKey
   icon: typeof Bold
   activeKey?: string
 }
 
 const formatButtons: ToolButton[] = [
-  { command: 'bold', label: '加粗 (Ctrl+B)', icon: Bold, activeKey: 'bold' },
+  { command: 'bold', labelKey: 'toolbar.bold', icon: Bold, activeKey: 'bold' },
   {
     command: 'italic',
-    label: '斜体 (Ctrl+I)',
+    labelKey: 'toolbar.italic',
     icon: Italic,
     activeKey: 'italic',
   },
   {
     command: 'underline',
-    label: '下划线 (Ctrl+U)',
+    labelKey: 'toolbar.underline',
     icon: Underline,
     activeKey: 'underline',
   },
   {
     command: 'strikeThrough',
-    label: '删除线',
+    labelKey: 'toolbar.strike',
     icon: Strikethrough,
     activeKey: 'strikeThrough',
   },
@@ -49,35 +50,37 @@ const formatButtons: ToolButton[] = [
 const blockButtons: ToolButton[] = [
   {
     command: 'insertUnorderedList',
-    label: '无序列表',
+    labelKey: 'toolbar.bulletList',
     icon: List,
     activeKey: 'insertUnorderedList',
   },
   {
     command: 'insertOrderedList',
-    label: '有序列表',
+    labelKey: 'toolbar.orderedList',
     icon: ListOrdered,
     activeKey: 'insertOrderedList',
   },
   {
     command: 'formatBlock',
     value: 'blockquote',
-    label: '引用',
+    labelKey: 'toolbar.quote',
     icon: Quote,
   },
 ]
 
 const historyButtons: ToolButton[] = [
-  { command: 'undo', label: '撤销 (Ctrl+Z)', icon: Undo2 },
-  { command: 'redo', label: '重做 (Ctrl+Shift+Z)', icon: Redo2 },
+  { command: 'undo', labelKey: 'toolbar.undo', icon: Undo2 },
+  { command: 'redo', labelKey: 'toolbar.redo', icon: Redo2 },
 ]
 
 function ToolbarButton({
   button,
+  label,
   active,
   onCommand,
 }: {
   button: ToolButton
+  label: string
   active: Record<string, boolean>
   onCommand: EditorToolbarProps['onCommand']
 }) {
@@ -88,8 +91,8 @@ function ToolbarButton({
     <button
       type="button"
       className={`editor-toolbar__button${isActive ? ' is-active' : ''}`}
-      title={button.label}
-      aria-label={button.label}
+      title={label}
+      aria-label={label}
       aria-pressed={isActive}
       onClick={() => onCommand(button.command, button.value)}
     >
@@ -99,11 +102,13 @@ function ToolbarButton({
 }
 
 export function EditorToolbar({ active, onCommand }: EditorToolbarProps) {
+  const { t } = useI18n()
+
   return (
     <div
       className="editor-toolbar"
       role="toolbar"
-      aria-label="文本格式工具"
+      aria-label={t('toolbar.aria')}
       onMouseDown={(event) => {
         if ((event.target as HTMLElement).closest('button')) {
           event.preventDefault()
@@ -115,6 +120,7 @@ export function EditorToolbar({ active, onCommand }: EditorToolbarProps) {
           <ToolbarButton
             key={button.command}
             button={button}
+            label={t(button.labelKey)}
             active={active}
             onCommand={onCommand}
           />
@@ -126,6 +132,7 @@ export function EditorToolbar({ active, onCommand }: EditorToolbarProps) {
           <ToolbarButton
             key={`${button.command}-${button.value ?? ''}`}
             button={button}
+            label={t(button.labelKey)}
             active={active}
             onCommand={onCommand}
           />
@@ -137,6 +144,7 @@ export function EditorToolbar({ active, onCommand }: EditorToolbarProps) {
           <ToolbarButton
             key={button.command}
             button={button}
+            label={t(button.labelKey)}
             active={active}
             onCommand={onCommand}
           />
@@ -146,8 +154,8 @@ export function EditorToolbar({ active, onCommand }: EditorToolbarProps) {
       <button
         type="button"
         className="editor-toolbar__button"
-        title="清除格式"
-        aria-label="清除格式"
+        title={t('toolbar.clear')}
+        aria-label={t('toolbar.clear')}
         onClick={() => onCommand('removeFormat')}
       >
         <Eraser size={16} strokeWidth={2} />

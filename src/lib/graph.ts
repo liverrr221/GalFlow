@@ -1,3 +1,7 @@
+import {
+  translate,
+  type Language,
+} from '../i18n/translations'
 import type {
   ChoiceFlowNode,
   ConditionFlowNode,
@@ -91,6 +95,7 @@ export function findEdgeForOption(
 export function buildStoryGraphIndex(
   nodes: StoryNode[],
   edges: StoryEdge[],
+  language: Language = 'zh',
 ): StoryGraphIndex {
   const nodeMap = new Map(nodes.map((node) => [node.id, node]))
   const validEdges = edges.filter(
@@ -193,13 +198,24 @@ export function buildStoryGraphIndex(
 
     if (node.type === 'scene') {
       sceneCount += 1
-      labelById.set(id, `场景 ${sceneCount}`)
+      labelById.set(
+        id,
+        translate(language, 'lib.sceneNumber', { count: sceneCount }),
+      )
     } else if (node.type === 'choice') {
       choiceCount += 1
-      labelById.set(id, `选择 ${choiceCount}`)
+      labelById.set(
+        id,
+        translate(language, 'lib.choiceNumber', { count: choiceCount }),
+      )
     } else {
       conditionCount += 1
-      labelById.set(id, `条件 ${conditionCount}`)
+      labelById.set(
+        id,
+        translate(language, 'lib.conditionNumber', {
+          count: conditionCount,
+        }),
+      )
     }
   })
 

@@ -1,4 +1,5 @@
 import { Minus, Plus, Type } from 'lucide-react'
+import { useI18n } from '../../i18n'
 import {
   MAX_FONT_SIZE,
   MIN_FONT_SIZE,
@@ -16,24 +17,25 @@ export function FontSizeControl({
   onChange,
   compact = false,
 }: FontSizeControlProps) {
+  const { t } = useI18n()
   const safeValue = clampFontSize(value)
   const changeBy = (delta: number) => onChange(clampFontSize(safeValue + delta))
 
   return (
     <div
       className={`font-size-control${compact ? ' is-compact' : ''}`}
-      aria-label="正文字号"
+      aria-label={t('fontSize.aria')}
     >
       <span className="font-size-control__label">
         <Type size={14} strokeWidth={1.9} />
-        {!compact && <span>字号</span>}
+        {!compact && <span>{t('fontSize.label')}</span>}
       </span>
       <button
         type="button"
         className="font-size-control__step"
         onClick={() => changeBy(-1)}
         disabled={safeValue <= MIN_FONT_SIZE}
-        aria-label="减小字号"
+        aria-label={t('fontSize.decrease')}
       >
         <Minus size={13} />
       </button>
@@ -45,7 +47,7 @@ export function FontSizeControl({
           step={1}
           value={safeValue}
           onChange={(event) => onChange(clampFontSize(Number(event.target.value)))}
-          aria-label="调整正文字号"
+          aria-label={t('fontSize.adjust')}
         />
       )}
       <span className="font-size-control__value">{safeValue}px</span>
@@ -54,7 +56,7 @@ export function FontSizeControl({
         className="font-size-control__step"
         onClick={() => changeBy(1)}
         disabled={safeValue >= MAX_FONT_SIZE}
-        aria-label="增大字号"
+        aria-label={t('fontSize.increase')}
       >
         <Plus size={13} />
       </button>

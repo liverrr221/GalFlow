@@ -1,3 +1,5 @@
+import { currentLanguage } from '../i18n'
+import { translate, type Language } from '../i18n/translations'
 import type {
   ConditionCase,
   ConditionOperator,
@@ -37,13 +39,21 @@ export function isBooleanVariable(
 export function formatVariableValue(
   variable: StoryVariable | undefined,
   value: VariableValue,
+  language: Language = currentLanguage(),
 ): string {
-  if (variable?.kind === 'boolean') return value ? '是' : '否'
+  const tr = (key: 'lib.boolTrue' | 'lib.boolFalse') =>
+    translate(language, key)
+  if (variable?.kind === 'boolean') {
+    return value ? tr('lib.boolTrue') : tr('lib.boolFalse')
+  }
   return String(value)
 }
 
-export function formatVariableInitialValue(variable: StoryVariable): string {
-  return formatVariableValue(variable, variable.initialValue)
+export function formatVariableInitialValue(
+  variable: StoryVariable,
+  language?: Language,
+): string {
+  return formatVariableValue(variable, variable.initialValue, language)
 }
 
 export function findVariable(
@@ -56,12 +66,16 @@ export function findVariable(
 export function formatEffect(
   effect: VariableEffect,
   variables: StoryVariable[],
+  language: Language = currentLanguage(),
 ): string {
   const variable = findVariable(variables, effect.variableId)
-  if (!variable) return '未知变量'
+  if (!variable) return translate(language, 'lib.unknownVariable')
 
   if (variable.kind === 'boolean') {
-    return `${variable.name} = ${effect.value ? '是' : '否'}`
+    return `${variable.name} = ${translate(
+      language,
+      effect.value ? 'lib.boolTrue' : 'lib.boolFalse',
+    )}`
   }
 
   if (effect.operation === 'add') {
@@ -76,17 +90,21 @@ export function formatEffect(
 export function formatEffectList(
   effects: VariableEffect[],
   variables: StoryVariable[],
+  language: Language = currentLanguage(),
 ): string {
   if (effects.length === 0) return ''
-  return effects.map((effect) => formatEffect(effect, variables)).join('、')
+  return effects
+    .map((effect) => formatEffect(effect, variables, language))
+    .join(translate(language, 'lib.listSeparator'))
 }
 
 export function formatConditionCase(
   condition: ConditionCase,
   variables: StoryVariable[],
+  language: Language = currentLanguage(),
 ): string {
   const variable = findVariable(variables, condition.variableId)
-  if (!variable) return '未设置变量'
+  if (!variable) return translate(language, 'lib.unsetVariable')
 
   const operator =
     CONDITION_OPERATORS.find((item) => item.value === condition.operator)
@@ -94,9 +112,15 @@ export function formatConditionCase(
 
   if (variable.kind === 'boolean') {
     if (condition.operator === '!=') {
-      return `${variable.name} ≠ ${condition.value ? '是' : '否'}`
+      return `${variable.name} ≠ ${translate(
+        language,
+        condition.value ? 'lib.boolTrue' : 'lib.boolFalse',
+      )}`
     }
-    return `${variable.name} = ${condition.value ? '是' : '否'}`
+    return `${variable.name} = ${translate(
+      language,
+      condition.value ? 'lib.boolTrue' : 'lib.boolFalse',
+    )}`
   }
 
   return `${variable.name} ${operator} ${condition.value}`

@@ -1,6 +1,7 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { GitBranch } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { useI18n } from '../../../i18n'
 import { formatConditionCase } from '../../../lib/variables'
 import { useStoryStore } from '../../../store/useStoryStore'
 import type { ConditionFlowNode } from '../../../types/story'
@@ -13,6 +14,7 @@ export function ConditionNode({
   isConnectable,
 }: NodeProps<ConditionFlowNode>) {
   const variables = useStoryStore((state) => state.variables)
+  const { t } = useI18n()
   const cases = data.cases
 
   return (
@@ -32,10 +34,10 @@ export function ConditionNode({
               CONDITION
             </span>
             <h3 className="condition-node__title">
-              {data.title.trim() || '未命名条件'}
+              {data.title.trim() || t('condition.untitled')}
             </h3>
             <span className="condition-node__count">
-              {cases.length} 条规则 + 否则
+              {t('condition.ruleSummary', { count: cases.length })}
             </span>
           </div>
         </div>
@@ -44,7 +46,7 @@ export function ConditionNode({
       <div className="condition-node__cases">
         {cases.length === 0 && (
           <span className="condition-node__empty">
-            还没有条件规则，请在右侧添加
+            {t('condition.noRules')}
           </span>
         )}
 
@@ -75,7 +77,9 @@ export function ConditionNode({
 
         <div className="condition-case condition-case--else">
           <span className="condition-case__index">↳</span>
-          <span className="condition-case__label">否则</span>
+          <span className="condition-case__label">
+            {t('condition.else')}
+          </span>
           <Handle
             type="source"
             position={Position.Right}

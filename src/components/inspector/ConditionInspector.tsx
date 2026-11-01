@@ -5,6 +5,7 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react'
+import { useI18n } from '../../i18n'
 import {
   createConditionForVariable,
   formatConditionCase,
@@ -17,13 +18,8 @@ interface ConditionInspectorProps {
   node: ConditionFlowNode
 }
 
-function targetTypeLabel(type: string): string {
-  if (type === 'scene') return '剧情块'
-  if (type === 'choice') return '选项节点'
-  return '条件节点'
-}
-
 export function ConditionInspector({ node }: ConditionInspectorProps) {
+  const { t } = useI18n()
   const nodes = useStoryStore((state) => state.nodes)
   const edges = useStoryStore((state) => state.edges)
   const variables = useStoryStore((state) => state.variables)
@@ -44,6 +40,13 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
 
   const cases = node.data.cases
 
+  const targetTypeLabel = (type: string) =>
+    type === 'scene'
+      ? t('conditionInspector.targetScene')
+      : type === 'choice'
+        ? t('conditionInspector.targetChoice')
+        : t('conditionInspector.targetCondition')
+
   const findTarget = (sourceHandle: string) => {
     const edge = edges.find(
       (item) =>
@@ -53,7 +56,7 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
   }
 
   const handleDelete = () => {
-    if (!window.confirm('确定删除这个条件节点吗？与它相连的线也会一起移除。')) {
+    if (!window.confirm(t('conditionInspector.confirmDelete'))) {
       return
     }
     deleteNode(node.id)
@@ -63,14 +66,14 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
     <div className="inspector__body">
       <div className="inspector__section">
         <label className="field-label" htmlFor={`condition-title-${node.id}`}>
-          条件标题
+          {t('conditionInspector.titleLabel')}
         </label>
         <input
           id={`condition-title-${node.id}`}
           className="text-input text-input--title"
           value={node.data.title}
           maxLength={50}
-          placeholder="例如：好感度分支"
+          placeholder={t('conditionInspector.titlePlaceholder')}
           onChange={(event) =>
             updateConditionTitle(node.id, event.target.value)
           }
@@ -79,9 +82,11 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
 
       <div className="inspector__section">
         <div className="inspector__section-head">
-          <span className="field-label">条件规则</span>
+          <span className="field-label">
+            {t('conditionInspector.rulesLabel')}
+          </span>
           <span className="inspector__badge">
-            {cases.length} 条规则 + 否则
+            {t('conditionInspector.summary', { count: cases.length })}
           </span>
         </div>
 
@@ -89,8 +94,8 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
           {cases.length === 0 && (
             <div className="condition-empty">
               {variables.length === 0
-                ? '请先在顶栏「变量」中创建数值或开关变量。'
-                : '还没有规则。添加一条规则后，从节点右侧拖线到对应剧情。'}
+                ? t('conditionInspector.noVariables')
+                : t('conditionInspector.noRules')}
             </div>
           )}
 
@@ -111,7 +116,9 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
                   <select
                     className="mini-select condition-editor__variable"
                     value={condition.variableId}
-                    aria-label={`规则 ${index + 1} 变量`}
+                    aria-label={t('conditionInspector.variableAria', {
+                      index: index + 1,
+                    })}
                     onChange={(event) => {
                       const nextVariable = variables.find(
                         (item) => item.id === event.target.value,
@@ -123,7 +130,9 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
                     }}
                   >
                     {variables.length === 0 && (
-                      <option value="">无可用变量</option>
+                      <option value="">
+                        {t('conditionInspector.noVariableOption')}
+                      </option>
                     )}
                     {variables.map((item) => (
                       <option key={item.id} value={item.id}>
@@ -135,7 +144,9 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
                   <select
                     className="mini-select condition-editor__operator"
                     value={condition.operator}
-                    aria-label={`规则 ${index + 1} 运算符`}
+                    aria-label={t('conditionInspector.operatorAria', {
+                      index: index + 1,
+                    })}
                     onChange={(event) =>
                       updateConditionCase(node.id, condition.id, {
                         operator: event.target
@@ -154,22 +165,26 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
                     <select
                       className="mini-select condition-editor__value"
                       value={condition.value ? 'true' : 'false'}
-                      aria-label={`规则 ${index + 1} 值`}
+                      aria-label={t('conditionInspector.valueAria', {
+                        index: index + 1,
+                      })}
                       onChange={(event) =>
                         updateConditionCase(node.id, condition.id, {
                           value: event.target.value === 'true',
                         })
                       }
                     >
-                      <option value="true">是</option>
-                      <option value="false">否</option>
+                      <option value="true">{t('common.yes')}</option>
+                      <option value="false">{t('common.no')}</option>
                     </select>
                   ) : (
                     <input
                       className="mini-input condition-editor__value"
                       type="number"
                       value={Number(condition.value)}
-                      aria-label={`规则 ${index + 1} 值`}
+                      aria-label={t('conditionInspector.valueAria', {
+                        index: index + 1,
+                      })}
                       onChange={(event) => {
                         const value = Number(event.target.value)
                         updateConditionCase(node.id, condition.id, {
@@ -183,8 +198,8 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
                     <button
                       type="button"
                       className="icon-button icon-button--tiny"
-                      aria-label="上移规则"
-                      title="上移，优先判断"
+                      aria-label={t('conditionInspector.moveUp')}
+                      title={t('conditionInspector.moveUpTitle')}
                       disabled={index === 0}
                       onClick={() =>
                         moveConditionCase(node.id, condition.id, 'up')
@@ -195,8 +210,8 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
                     <button
                       type="button"
                       className="icon-button icon-button--tiny"
-                      aria-label="下移规则"
-                      title="下移"
+                      aria-label={t('conditionInspector.moveDown')}
+                      title={t('conditionInspector.moveDownTitle')}
                       disabled={index === cases.length - 1}
                       onClick={() =>
                         moveConditionCase(node.id, condition.id, 'down')
@@ -207,8 +222,8 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
                     <button
                       type="button"
                       className="icon-button icon-button--tiny"
-                      aria-label="删除规则"
-                      title="删除规则"
+                      aria-label={t('conditionInspector.deleteRule')}
+                      title={t('conditionInspector.deleteRule')}
                       onClick={() =>
                         removeConditionCase(node.id, condition.id)
                       }
@@ -227,10 +242,13 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
                   <span>{formatConditionCase(condition, variables)}</span>
                   <span className="condition-editor__connection-status">
                     {target
-                      ? `→ ${targetTypeLabel(target.type)}「${
-                          target.data.title.trim() || '未命名'
-                        }」`
-                      : '尚未连接'}
+                      ? t('conditionInspector.connectedTo', {
+                          type: targetTypeLabel(target.type),
+                          title:
+                            target.data.title.trim() ||
+                            t('common.untitled'),
+                        })
+                      : t('conditionInspector.notConnected')}
                   </span>
                 </div>
               </div>
@@ -245,13 +263,15 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
           disabled={variables.length === 0}
         >
           <Plus size={15} />
-          添加条件规则
+          {t('conditionInspector.addRule')}
         </button>
 
         <div className="condition-else">
           <div className="condition-else__head">
-            <span>否则 / 其他情况</span>
-            <span className="condition-else__hint">不满足以上规则时</span>
+            <span>{t('conditionInspector.elseTitle')}</span>
+            <span className="condition-else__hint">
+              {t('conditionInspector.elseHint')}
+            </span>
           </div>
           <div
             className={`condition-editor__connection${
@@ -260,25 +280,30 @@ export function ConditionInspector({ node }: ConditionInspectorProps) {
           >
             <CornerDownRight size={13} />
             {findTarget('else') ? (
-              <span>{`→ ${targetTypeLabel(
-                findTarget('else')!.type,
-              )}「${findTarget('else')!.data.title.trim() || '未命名'}」`}</span>
+              <span>
+                {t('conditionInspector.elseConnected', {
+                  type: targetTypeLabel(findTarget('else')!.type),
+                  title:
+                    findTarget('else')!.data.title.trim() ||
+                    t('common.untitled'),
+                })}
+              </span>
             ) : (
-              <span>从节点底部的「否则」圆点拖出一条线</span>
+              <span>{t('conditionInspector.elseDisconnected')}</span>
             )}
           </div>
         </div>
 
         <div className="inspector__tip">
           <span className="inspector__tip-mark">TIP</span>
-          条件从上到下依次判断，命中第一条就跳转；都不满足时走「否则」。变量变化可以在选项或剧情块的设置里添加。
+          {t('conditionInspector.tip')}
         </div>
       </div>
 
       <div className="inspector__danger">
         <button type="button" className="danger-button" onClick={handleDelete}>
           <Trash2 size={15} />
-          删除此条件节点
+          {t('conditionInspector.delete')}
         </button>
       </div>
     </div>

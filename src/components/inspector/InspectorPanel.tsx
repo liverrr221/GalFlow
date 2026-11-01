@@ -1,4 +1,5 @@
 import { Maximize2, X } from 'lucide-react'
+import { useI18n } from '../../i18n'
 import { useStoryStore } from '../../store/useStoryStore'
 import { ChoiceInspector } from './ChoiceInspector'
 import { ConditionInspector } from './ConditionInspector'
@@ -12,6 +13,7 @@ export function InspectorPanel({ onOpenFullscreen }: InspectorPanelProps) {
   const selectedNodeId = useStoryStore((state) => state.selectedNodeId)
   const nodes = useStoryStore((state) => state.nodes)
   const selectNode = useStoryStore((state) => state.selectNode)
+  const { t } = useI18n()
 
   const node = nodes.find((item) => item.id === selectedNodeId)
   if (!node) return null
@@ -19,23 +21,23 @@ export function InspectorPanel({ onOpenFullscreen }: InspectorPanelProps) {
   const kind = node.type
   const fallbackTitle =
     kind === 'scene'
-      ? '未命名场景'
+      ? t('scene.untitled')
       : kind === 'choice'
-        ? '未命名选择'
-        : '未命名条件'
+        ? t('choice.untitled')
+        : t('condition.untitled')
   const title = node.data.title.trim() || fallbackTitle
   const kicker =
     kind === 'scene'
-      ? 'SCENE · 剧情块'
+      ? t('inspector.sceneKicker')
       : kind === 'choice'
-        ? 'CHOICE · 选项节点'
-        : 'CONDITION · 条件节点'
+        ? t('inspector.choiceKicker')
+        : t('inspector.conditionKicker')
   const label =
     kind === 'scene'
-      ? '剧情块编辑栏'
+      ? t('inspector.sceneLabel')
       : kind === 'choice'
-        ? '选项节点编辑栏'
-        : '条件节点编辑栏'
+        ? t('inspector.choiceLabel')
+        : t('inspector.conditionLabel')
 
   return (
     <aside className="inspector" aria-label={label}>
@@ -62,8 +64,8 @@ export function InspectorPanel({ onOpenFullscreen }: InspectorPanelProps) {
               type="button"
               className="icon-button icon-button--soft"
               onClick={() => onOpenFullscreen(node.id)}
-              title="全屏编辑"
-              aria-label="全屏编辑"
+              title={t('sceneInspector.fullscreen')}
+              aria-label={t('sceneInspector.fullscreen')}
             >
               <Maximize2 size={16} />
             </button>
@@ -72,8 +74,8 @@ export function InspectorPanel({ onOpenFullscreen }: InspectorPanelProps) {
             type="button"
             className="icon-button icon-button--soft"
             onClick={() => selectNode(null)}
-            title="关闭编辑栏"
-            aria-label="关闭编辑栏"
+            title={t('inspector.closeAria')}
+            aria-label={t('inspector.closeAria')}
           >
             <X size={17} />
           </button>

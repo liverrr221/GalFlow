@@ -5,6 +5,7 @@ import {
 } from '@xyflow/react'
 import { GitBranch } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { useI18n } from '../../../i18n'
 import { OPTION_COLORS } from '../../../lib/constants'
 import type { ChoiceFlowNode } from '../../../types/story'
 
@@ -13,7 +14,8 @@ export function ChoiceNode({
   selected,
   isConnectable,
 }: NodeProps<ChoiceFlowNode>) {
-  const title = data.title.trim() || '未命名选择'
+  const { t } = useI18n()
+  const title = data.title.trim() || t('choice.untitled')
   const options = data.options
 
   return (
@@ -33,14 +35,16 @@ export function ChoiceNode({
               CHOICE
             </span>
             <h3 className="choice-node__title">{title}</h3>
-            <span className="choice-node__count">{options.length} 条分支</span>
+            <span className="choice-node__count">
+              {t('choice.branchCount', { count: options.length })}
+            </span>
           </div>
         </div>
       </div>
 
       <div className="choice-node__options">
         {options.length === 0 && (
-          <span className="choice-node__empty">在右侧添加选项</span>
+          <span className="choice-node__empty">{t('choice.empty')}</span>
         )}
 
         {options.map((option, index) => (
@@ -55,7 +59,8 @@ export function ChoiceNode({
           >
             <span className="choice-option__index">{index + 1}</span>
             <span className="choice-option__label">
-              {option.label.trim() || `选项 ${index + 1}`}
+              {option.label.trim() ||
+                t('choice.optionFallback', { index: index + 1 })}
             </span>
             <Handle
               type="source"

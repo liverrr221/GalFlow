@@ -229,6 +229,65 @@ describe('buildStoryText', () => {
     expect(text).toContain('条件节点 1 个')
   })
 
+  it('exports English headings and variable text when requested', () => {
+    const variables = [
+      {
+        id: 'v-affection',
+        name: '好感度',
+        kind: 'number' as const,
+        initialValue: 0,
+        description: '',
+      },
+    ]
+    const nodes: StoryNode[] = [
+      scene('s1', 'Start'),
+      {
+        id: 'cond1',
+        type: 'condition',
+        position: { x: 400, y: 0 },
+        data: {
+          kind: 'condition',
+          title: 'Affection',
+          cases: [
+            {
+              id: 'case-1',
+              variableId: 'v-affection',
+              operator: '>=',
+              value: 1,
+            },
+          ],
+        },
+      },
+      scene('s2', 'Good End'),
+      scene('s3', 'Normal End'),
+    ]
+    const edges: StoryEdge[] = [
+      edge('e1', 's1', 'cond1'),
+      edge('e2', 'cond1', 's2', 'case-1'),
+      edge('e3', 'cond1', 's3', 'else'),
+    ]
+
+    const text = buildStoryText({
+      title: 'English Test',
+      variables,
+      nodes,
+      edges,
+      language: 'en',
+      generatedAt,
+    })
+
+    expect(text).toContain('1. Story Flow')
+    expect(text).toContain('2. Scenes, Choices, and Conditions')
+    expect(text).toContain('3. Endings and To-Do')
+    expect(text).toContain('Scene 1: Start')
+    expect(text).toContain('If 好感度 ≥ 1')
+    expect(text).toContain('Otherwise')
+    expect(text).toContain('Endings (2)')
+    expect(buildTextFileName('English Test', 'en')).toBe(
+      'English_Test_story-flow.txt',
+    )
+  })
+
   it('lists the main component before isolated nodes, even if they are leftmost', () => {
     const nodes = [
       scene('s1', '主线开始', '', 400, 200),

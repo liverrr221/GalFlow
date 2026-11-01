@@ -23,6 +23,7 @@ The app opens with a built-in sample story, **Letters at Dusk**, so a fresh clon
 - **Condition nodes** — ordered rules with numeric/boolean comparisons and an `else` fallback.
 - **Variables** — number and boolean variables, initial values, descriptions, usage counts, and cascade-safe deletion.
 - **Multiple canvases** — create, switch, rename (via story title), and delete independent flowcharts. Switching restores content and fits the view.
+- **Bilingual interface** — switch the UI and exported structural text between 中文 and English; the choice is saved locally.
 - **Rich-text editor** — bold, italic, underline, strike-through, lists, quote, undo/redo, clear formatting, and 12–36 px text.
 - **Fullscreen writing** — double-click a scene or use the inspector's fullscreen button.
 - **Connections** — drag from a node handle to another node; option and condition edges get readable labels automatically.
@@ -81,6 +82,18 @@ Each canvas is an independent storyboard. Use the canvas control above the story
 Share/export operations apply to the **active canvas** only. Switch canvases and export each one separately when you need to share several.
 
 ![Canvas menu](docs/canvas-menu.png)
+
+## Interface Language
+
+Open the top-right `...` menu and choose **中文** or **English** under **Language**.
+
+- Changes take effect immediately and are saved locally.
+- It translates the top bar, canvas hints, inspectors, variables, share/export dialogs, confirmation prompts, generated default node names, and exported structural headings/filenames.
+- Your actual story text is **never machine-translated** — only the interface and generated scaffolding change.
+
+![Language menu](docs/interface-language.png)
+
+![English interface](docs/english-ui.png)
 
 ## Variables and Conditional Branches
 
@@ -154,11 +167,12 @@ src/
     inspector/          Scene / choice / condition inspectors
     variables/          Variable manager and effects editor
     share/              PNG / project / text sharing dialog
-    layout/             Top bar and canvas switcher
+    layout/             Top bar, canvas switcher, language menu
     export/             Text export dialog
   hooks/                Node creation helpers
+  i18n/                 Chinese/English dictionaries and useI18n
   lib/                  Graph, variable, project, export and download helpers
-  store/                Multi-canvas Zustand store and migrations
+  store/                Multi-canvas store, UI language store, migrations
   styles/               Area-specific CSS
   types/                Story, variable and canvas types
 ```
@@ -188,6 +202,7 @@ npm run smoke            # needs dev server + Edge/Chrome
 npm run smoke:share
 npm run smoke:variables
 npm run smoke:canvases
+npm run smoke:i18n       # Chinese/English switching
 npm run smoke:desktop    # Electron smoke test
 ```
 

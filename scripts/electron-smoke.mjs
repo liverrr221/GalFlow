@@ -144,6 +144,15 @@ try {
     '桌面版切换画布后应恢复原内容',
   )
 
+  // The desktop build exposes the same Chinese/English switch.
+  await window.getByRole('button', { name: '更多操作' }).click()
+  await window.getByRole('button', { name: 'English' }).click()
+  await window.keyboard.press('Escape')
+  assert(
+    (await window.getByRole('button', { name: 'Export Text' }).count()) > 0,
+    '桌面版切换英文后顶栏应更新',
+  )
+
   console.log(`Electron desktop window OK (Electron ${desktopInfo.electronVersion})`)
   console.log(`Screenshot: ${path.join(ARTIFACTS, 'desktop-window.png')}`)
 } catch (error) {

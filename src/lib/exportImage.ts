@@ -1,4 +1,5 @@
 import { getNodesBounds, getViewportForBounds } from '@xyflow/react'
+import { tCurrent } from '../i18n'
 import type { StoryNode } from '../types/story'
 
 export interface FlowImageResult {
@@ -13,12 +14,12 @@ function safeBaseName(title: string): string {
       .trim()
       .replace(/[\\/:*?"<>|]/g, '')
       .replace(/\s+/g, '_')
-      .slice(0, 48) || '未命名剧情'
+      .slice(0, 48) || tCurrent('lib.untitledStory')
   )
 }
 
 export function buildFlowImageFileName(title: string): string {
-  return `${safeBaseName(title)}_剧情流程图.png`
+  return `${safeBaseName(title)}_${tCurrent('lib.flowImageSuffix')}.png`
 }
 
 /**
@@ -30,14 +31,14 @@ export async function renderFlowImage(
   nodes: StoryNode[],
 ): Promise<FlowImageResult> {
   if (nodes.length === 0) {
-    throw new Error('画布中还没有节点，暂时无法导出图片')
+    throw new Error(tCurrent('lib.imageNoNodes'))
   }
 
   const viewport = document.querySelector<HTMLElement>(
     '.react-flow__viewport',
   )
   if (!viewport) {
-    throw new Error('找不到画布，无法导出图片')
+    throw new Error(tCurrent('lib.imageNoCanvas'))
   }
 
   const bounds = getNodesBounds(nodes)
@@ -47,7 +48,7 @@ export async function renderFlowImage(
     bounds.width <= 0 ||
     bounds.height <= 0
   ) {
-    throw new Error('无法计算画布范围')
+    throw new Error(tCurrent('lib.imageNoBounds'))
   }
 
   const baseScale = 1.35

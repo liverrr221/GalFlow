@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Minimize2, X } from 'lucide-react'
+import { useI18n } from '../../i18n'
 import { countTextCharacters } from '../../lib/html'
 import { useStoryStore } from '../../store/useStoryStore'
 import { FontSizeControl } from '../editor/FontSizeControl'
@@ -11,6 +12,7 @@ interface FullscreenEditorProps {
 }
 
 export function FullscreenEditor({ nodeId, onClose }: FullscreenEditorProps) {
+  const { t } = useI18n()
   const node = useStoryStore((state) =>
     state.nodes.find(
       (item) => item.id === nodeId && item.type === 'scene',
@@ -41,7 +43,7 @@ export function FullscreenEditor({ nodeId, onClose }: FullscreenEditorProps) {
       className="fullscreen-editor"
       role="dialog"
       aria-modal="true"
-      aria-label="全屏剧情编辑器"
+      aria-label={t('fullscreen.aria')}
     >
       <div className="fullscreen-editor__shell">
         <header className="fullscreen-editor__header">
@@ -62,14 +64,14 @@ export function FullscreenEditor({ nodeId, onClose }: FullscreenEditorProps) {
               onClick={onClose}
             >
               <Minimize2 size={15} />
-              返回侧栏
+              {t('fullscreen.back')}
             </button>
             <button
               type="button"
               className="icon-button icon-button--soft"
               onClick={onClose}
-              aria-label="关闭全屏编辑"
-              title="关闭全屏编辑"
+              aria-label={t('fullscreen.closeAria')}
+              title={t('fullscreen.closeAria')}
             >
               <X size={18} />
             </button>
@@ -84,13 +86,15 @@ export function FullscreenEditor({ nodeId, onClose }: FullscreenEditorProps) {
                 className="fullscreen-paper__title"
                 value={node.data.title}
                 maxLength={50}
-                placeholder="这一幕叫什么？"
-                aria-label="场景标题"
+                placeholder={t('fullscreen.titlePlaceholder')}
+                aria-label={t('fullscreen.titleAria')}
                 onChange={(event) =>
                   updateScene(node.id, { title: event.target.value })
                 }
               />
-              <span className="fullscreen-paper__count">{wordCount} 字</span>
+              <span className="fullscreen-paper__count">
+                {t('common.chars', { count: wordCount })}
+              </span>
             </div>
 
             <RichTextEditor
@@ -99,13 +103,13 @@ export function FullscreenEditor({ nodeId, onClose }: FullscreenEditorProps) {
               fontSize={node.data.fontSize}
               variant="fullscreen"
               autoFocus
-              placeholder="在这里写下这一幕的剧情、对白和旁白。换行、加粗、列表都可以自由使用……"
+              placeholder={t('fullscreen.editorPlaceholder')}
               onChange={(content) => updateScene(node.id, { content })}
             />
 
             <footer className="fullscreen-paper__footer">
-              <span>内容会自动保存</span>
-              <span>Esc 或「返回侧栏」收起全屏</span>
+              <span>{t('fullscreen.autosave')}</span>
+              <span>{t('fullscreen.escHint')}</span>
             </footer>
           </div>
         </div>

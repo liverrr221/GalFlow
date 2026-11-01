@@ -13,6 +13,7 @@ import {
 } from '@xyflow/react'
 import { Diamond, GitBranch, MoveHorizontal, MousePointer2, Plus, Square } from 'lucide-react'
 import { useCreateNode } from '../../hooks/useCreateNode'
+import { useI18n } from '../../i18n'
 import { useStoryStore } from '../../store/useStoryStore'
 import { StoryEdgeComponent } from './edges/StoryEdge'
 import { ChoiceNode } from './nodes/ChoiceNode'
@@ -41,6 +42,7 @@ export function FlowCanvas({ onOpenFullscreen }: FlowCanvasProps) {
   const onEdgesChange = useStoryStore((state) => state.onEdgesChange)
   const onConnect = useStoryStore((state) => state.onConnect)
   const selectNode = useStoryStore((state) => state.selectNode)
+  const { t } = useI18n()
   const { fitView } = useReactFlow()
   const previousCanvasId = useRef(activeCanvasId)
 
@@ -62,7 +64,7 @@ export function FlowCanvas({ onOpenFullscreen }: FlowCanvasProps) {
   } = useCreateNode()
 
   return (
-    <section className="flow-canvas" aria-label="剧情流程画布">
+    <section className="flow-canvas" aria-label={t('canvas.aria')}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -107,27 +109,29 @@ export function FlowCanvas({ onOpenFullscreen }: FlowCanvasProps) {
         <Controls
           position="bottom-left"
           showInteractive={false}
-          aria-label="画布缩放控制"
+          aria-label={t('canvas.zoomAria')}
         />
         <Panel position="top-left" className="canvas-status">
           <span className="canvas-status__live">
             <span className="canvas-status__dot" />
-            自动保存
+            {t('canvas.autosave')}
           </span>
           <span className="canvas-status__divider" />
-          <span>{nodes.length} 个节点</span>
-          <span>{edges.length} 条连线</span>
+          <span>{t('common.nodeCount', { count: nodes.length })}</span>
+          <span>{t('common.edgeCount', { count: edges.length })}</span>
         </Panel>
         <Panel position="bottom-right" className="canvas-hints">
           <span>
             <MoveHorizontal size={13} />
-            拖动画布平移
+            {t('canvas.panHint')}
           </span>
           <span>
             <MousePointer2 size={13} />
-            滚轮缩放
+            {t('canvas.zoomHint')}
           </span>
-          <span className="canvas-hints__hide-mobile">双击剧情块全屏编辑</span>
+          <span className="canvas-hints__hide-mobile">
+            {t('canvas.fullscreenHint')}
+          </span>
         </Panel>
       </ReactFlow>
 
@@ -135,11 +139,11 @@ export function FlowCanvas({ onOpenFullscreen }: FlowCanvasProps) {
         <div className="canvas-empty">
           <div className="canvas-empty__card">
             <span className="canvas-empty__eyebrow">NEW STORY</span>
-            <h1>从第一幕开始</h1>
+            <h1>{t('canvas.emptyTitle')}</h1>
             <p>
-              用矩形写下剧情，用菱形安排选择，用六边形根据变量分出不同路线。
+              {t('canvas.emptyLead')}
               <br />
-              把故事像地图一样铺开，最后再导出成完整文本。
+              {t('canvas.emptySub')}
             </p>
             <div className="canvas-empty__actions">
               <button
@@ -149,7 +153,7 @@ export function FlowCanvas({ onOpenFullscreen }: FlowCanvasProps) {
               >
                 <Plus size={16} />
                 <Square size={15} />
-                新建剧情块
+                {t('canvas.addScene')}
               </button>
               <button
                 type="button"
@@ -158,7 +162,7 @@ export function FlowCanvas({ onOpenFullscreen }: FlowCanvasProps) {
               >
                 <Plus size={16} />
                 <Diamond size={15} />
-                新建选项节点
+                {t('canvas.addChoice')}
               </button>
               <button
                 type="button"
@@ -167,11 +171,11 @@ export function FlowCanvas({ onOpenFullscreen }: FlowCanvasProps) {
               >
                 <Plus size={16} />
                 <GitBranch size={15} />
-                条件分支
+                {t('canvas.addCondition')}
               </button>
             </div>
             <span className="canvas-empty__hint">
-              提示：先双击画布上的剧情块，右侧会展开文本编辑栏
+              {t('canvas.emptyTip')}
             </span>
           </div>
         </div>

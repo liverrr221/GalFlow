@@ -21,6 +21,7 @@ import {
 } from '../lib/constants'
 import { createId } from '../lib/ids'
 import { createSampleStory } from '../lib/sampleStory'
+import { tCurrent } from '../i18n'
 import {
   createConditionForVariable,
   formatConditionCase,
@@ -195,11 +196,11 @@ function nextCanvasTitle(state: CanvasCarrier): string {
     ...state.inactiveCanvases.map((canvas) => canvas.title),
   ])
   let index = state.inactiveCanvases.length + 2
-  let title = `未命名剧情 ${index}`
+  let title = `${tCurrent('lib.untitledStory')} ${index}`
 
   while (used.has(title)) {
     index += 1
-    title = `未命名剧情 ${index}`
+    title = `${tCurrent('lib.untitledStory')} ${index}`
   }
 
   return title
@@ -210,7 +211,11 @@ function nextNodeTitle(
   kind: 'scene' | 'choice' | 'condition',
 ): string {
   const base =
-    kind === 'scene' ? '场景' : kind === 'choice' ? '选择' : '条件'
+    kind === 'scene'
+      ? tCurrent('lib.scene')
+      : kind === 'choice'
+        ? tCurrent('lib.choice')
+        : tCurrent('lib.condition')
   const usedTitles = new Set(nodes.map((node) => node.data.title))
   let index = nodes.filter((node) => node.type === kind).length + 1
 
@@ -220,11 +225,11 @@ function nextNodeTitle(
 
 function nextOptionLabel(options: ChoiceOption[]): string {
   let index = options.length
-  let label = `选项 ${optionLetter(index)}`
+  let label = `${tCurrent('lib.option')} ${optionLetter(index)}`
 
   while (options.some((option) => option.label === label)) {
     index += 1
-    label = `选项 ${optionLetter(index)}`
+    label = `${tCurrent('lib.option')} ${optionLetter(index)}`
   }
 
   return label
@@ -390,11 +395,11 @@ export const useStoryStore = create<StoryState>()(
           get().variables.map((variable) => variable.name),
         )
         let index = get().variables.length + 1
-        let name = `变量 ${index}`
+        let name = tCurrent('lib.variableNumber', { count: index })
 
         while (usedNames.has(name)) {
           index += 1
-          name = `变量 ${index}`
+          name = tCurrent('lib.variableNumber', { count: index })
         }
 
         const variable: StoryVariable = {
@@ -532,8 +537,16 @@ export const useStoryStore = create<StoryState>()(
             kind: 'choice',
             title: nextNodeTitle(get().nodes, 'choice'),
             options: [
-              { id: optionAId, label: '选项 A', effects: [] },
-              { id: optionBId, label: '选项 B', effects: [] },
+              {
+                id: optionAId,
+                label: tCurrent('lib.optionNumber', { index: 'A' }),
+                effects: [],
+              },
+              {
+                id: optionBId,
+                label: tCurrent('lib.optionNumber', { index: 'B' }),
+                effects: [],
+              },
             ],
           },
         }
@@ -900,7 +913,7 @@ export const useStoryStore = create<StoryState>()(
         if (sourceNode.type === 'condition') {
           if (sourceHandle === 'else') {
             conditionCaseId = 'else'
-            conditionLabel = '否则'
+            conditionLabel = tCurrent('lib.else')
           } else {
             const condition = sourceNode.data.cases.find(
               (item) => item.id === sourceHandle,
@@ -972,7 +985,7 @@ export const useStoryStore = create<StoryState>()(
 
       clearStory: () =>
         set({
-          title: '未命名剧情',
+          title: tCurrent('lib.untitledStory'),
           variables: [],
           nodes: [],
           edges: [],

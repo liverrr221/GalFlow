@@ -11,6 +11,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useCreateNode } from '../../hooks/useCreateNode'
+import { useI18n } from '../../i18n'
 import { useStoryStore } from '../../store/useStoryStore'
 import { CanvasSwitcher } from './CanvasSwitcher'
 
@@ -27,6 +28,7 @@ export function TopBar({ onExport, onShare, onVariables }: TopBarProps) {
   const clearStory = useStoryStore((state) => state.clearStory)
   const nodeCount = useStoryStore((state) => state.nodes.length)
   const edgeCount = useStoryStore((state) => state.edges.length)
+  const { language, setLanguage, t } = useI18n()
   const {
     createChoiceAtViewport,
     createConditionAtViewport,
@@ -60,7 +62,7 @@ export function TopBar({ onExport, onShare, onVariables }: TopBarProps) {
     setMenuOpen(false)
     if (
       nodeCount > 0 &&
-      !window.confirm('载入示例剧情会替换当前画布上的内容，确定继续吗？')
+      !window.confirm(t('topbar.confirmLoadSample'))
     ) {
       return
     }
@@ -71,7 +73,7 @@ export function TopBar({ onExport, onShare, onVariables }: TopBarProps) {
     setMenuOpen(false)
     if (
       nodeCount > 0 &&
-      !window.confirm('确定清空当前画布吗？这个操作无法撤销。')
+      !window.confirm(t('topbar.confirmClear'))
     ) {
       return
     }
@@ -87,7 +89,7 @@ export function TopBar({ onExport, onShare, onVariables }: TopBarProps) {
         </span>
         <span className="brand__text">
           <strong>GalFlow</strong>
-          <small>剧情流程工作台</small>
+          <small>{t('topbar.subtitle')}</small>
         </span>
       </div>
 
@@ -100,8 +102,8 @@ export function TopBar({ onExport, onShare, onVariables }: TopBarProps) {
           className="story-title__input"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="给这个故事起个名字"
-          aria-label="剧本名称"
+          placeholder={t('topbar.storyTitlePlaceholder')}
+          aria-label={t('topbar.storyTitleAria')}
           maxLength={60}
         />
       </div>
@@ -112,12 +114,12 @@ export function TopBar({ onExport, onShare, onVariables }: TopBarProps) {
             className="desktop-badge"
             title={`Electron ${window.galflowDesktop.electronVersion}`}
           >
-            桌面版
+            {t('topbar.desktopBadge')}
           </span>
         )}
-        <span>{nodeCount} 节点</span>
+        <span>{t('common.nodeCount', { count: nodeCount })}</span>
         <span className="topbar__meta-dot" />
-        <span>{edgeCount} 连线</span>
+        <span>{t('common.edgeCount', { count: edgeCount })}</span>
       </div>
 
       <div className="topbar__actions">
@@ -125,65 +127,65 @@ export function TopBar({ onExport, onShare, onVariables }: TopBarProps) {
           type="button"
           className="button button--soft topbar__add"
           onClick={createSceneAtViewport}
-          title="在画布中央添加一个矩形剧情块"
+          title={t('topbar.addSceneTitle')}
         >
           <SquarePlus size={16} />
-          <span>剧情块</span>
+          <span>{t('topbar.addScene')}</span>
         </button>
         <button
           type="button"
           className="button button--soft topbar__add"
           onClick={createChoiceAtViewport}
-          title="在画布中央添加一个菱形选项节点"
+          title={t('topbar.addChoiceTitle')}
         >
           <Diamond size={16} />
-          <span>选项节点</span>
+          <span>{t('topbar.addChoice')}</span>
         </button>
         <button
           type="button"
           className="button button--soft topbar__add"
           onClick={createConditionAtViewport}
-          title="在画布中央添加一个条件分支节点"
+          title={t('topbar.addConditionTitle')}
         >
           <GitBranch size={16} />
-          <span>条件</span>
+          <span>{t('topbar.addCondition')}</span>
         </button>
         <button
           type="button"
           className="button button--ghost topbar__variables"
           onClick={onVariables}
-          title="变量管理"
-          aria-label="变量管理"
+          title={t('topbar.variablesTitle')}
+          aria-label={t('topbar.variablesTitle')}
         >
           <Braces size={16} />
-          <span>变量</span>
+          <span>{t('topbar.variables')}</span>
         </button>
         <button
           type="button"
           className="button button--ghost topbar__share"
           onClick={onShare}
           disabled={nodeCount === 0}
-          title="导出流程图图片或工程文件，分享给别人"
+          title={t('topbar.shareTitle')}
         >
           <Share2 size={16} />
-          <span>分享</span>
+          <span>{t('topbar.share')}</span>
         </button>
         <button
           type="button"
           className="button button--primary topbar__export"
           onClick={onExport}
           disabled={nodeCount === 0}
-          title="把当前流程图整理成一份完整文本"
+          title={t('topbar.exportTitle')}
         >
           <FileOutput size={16} />
-          <span>导出文本</span>
+          <span>{t('topbar.export')}</span>
         </button>
 
         <div className="topbar-menu" ref={menuRef}>
           <button
             type="button"
             className="icon-button"
-            aria-label="更多操作"
+            aria-label={t('topbar.more')}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
@@ -192,9 +194,34 @@ export function TopBar({ onExport, onShare, onVariables }: TopBarProps) {
           </button>
           {menuOpen && (
             <div className="topbar-menu__panel" role="menu">
+              <div className="topbar-menu__language">
+                <p className="topbar-menu__label">{t('topbar.language')}</p>
+                <div className="language-switch">
+                  <button
+                    type="button"
+                    className={language === 'zh' ? 'is-active' : ''}
+                    aria-pressed={language === 'zh'}
+                    onClick={() => setLanguage('zh')}
+                  >
+                    中文
+                  </button>
+                  <button
+                    type="button"
+                    className={language === 'en' ? 'is-active' : ''}
+                    aria-pressed={language === 'en'}
+                    onClick={() => setLanguage('en')}
+                  >
+                    English
+                  </button>
+                </div>
+                <p className="topbar-menu__note topbar-menu__note--tight">
+                  {t('topbar.languageHint')}
+                </p>
+              </div>
+              <div className="topbar-menu__divider" />
               <button type="button" role="menuitem" onClick={handleLoadSample}>
                 <BookOpen size={15} />
-                载入示例剧情
+                {t('topbar.loadSample')}
               </button>
               <button
                 type="button"
@@ -203,10 +230,10 @@ export function TopBar({ onExport, onShare, onVariables }: TopBarProps) {
                 onClick={handleClear}
               >
                 <Trash2 size={15} />
-                清空画布
+                {t('topbar.clearCanvas')}
               </button>
               <p className="topbar-menu__note">
-                所有修改都会自动保存在本机浏览器中
+                {t('topbar.autosaveFooter')}
               </p>
             </div>
           )}

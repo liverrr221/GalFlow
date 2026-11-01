@@ -4,6 +4,7 @@ import {
   getSmoothStepPath,
   type EdgeProps,
 } from '@xyflow/react'
+import { useI18n } from '../../../i18n'
 import { formatConditionCase } from '../../../lib/variables'
 import { useStoryStore } from '../../../store/useStoryStore'
 import type { StoryEdge } from '../../../types/story'
@@ -26,6 +27,7 @@ export function StoryEdgeComponent({
     state.nodes.find((node) => node.id === source),
   )
   const variables = useStoryStore((state) => state.variables)
+  const { t } = useI18n()
 
   let labelText = ''
 
@@ -36,7 +38,7 @@ export function StoryEdgeComponent({
       )?.label ?? data?.optionLabel ?? ''
   } else if (sourceNode?.type === 'condition') {
     if (sourceHandleId === 'else') {
-      labelText = '否则'
+      labelText = t('edge.else')
     } else {
       const condition = sourceNode.data.cases.find(
         (item) => item.id === sourceHandleId,

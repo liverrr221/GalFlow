@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Hash, Plus, ToggleLeft, Trash2, Variable, X } from 'lucide-react'
+import { useI18n } from '../../i18n'
 import { countVariableUsage } from '../../lib/variables'
 import { useStoryStore } from '../../store/useStoryStore'
 import type { StoryVariable } from '../../types/story'
@@ -9,6 +10,7 @@ interface VariablesDialogProps {
 }
 
 export function VariablesDialog({ onClose }: VariablesDialogProps) {
+  const { t } = useI18n()
   const variables = useStoryStore((state) => state.variables)
   const nodes = useStoryStore((state) => state.nodes)
   const addVariable = useStoryStore((state) => state.addVariable)
@@ -34,11 +36,14 @@ export function VariablesDialog({ onClose }: VariablesDialogProps) {
     const usage = countVariableUsage(variable.id, nodes)
     const detail =
       usage > 0
-        ? `它正被 ${usage} 处选项、剧情块或条件引用，删除后这些设置也会一起移除。`
+        ? t('variables.confirmDeleteUsage', { count: usage })
         : ''
     if (
       !window.confirm(
-        `确定删除变量「${variable.name}」吗？${detail}`,
+        t('variables.confirmDelete', {
+          name: variable.name,
+          detail,
+        }),
       )
     ) {
       return
@@ -64,16 +69,14 @@ export function VariablesDialog({ onClose }: VariablesDialogProps) {
             <Variable size={20} />
           </span>
           <div className="variables-dialog__heading">
-            <h2 id="variables-dialog-title">变量管理</h2>
-            <p>
-              好感度、flag、路线状态都放在这里。变量可以在选项或剧情块中改变，也可以用条件节点判断。
-            </p>
+            <h2 id="variables-dialog-title">{t('variables.title')}</h2>
+            <p>{t('variables.subtitle')}</p>
           </div>
           <button
             type="button"
             className="icon-button icon-button--soft"
             onClick={onClose}
-            aria-label="关闭变量管理"
+            aria-label={t('variables.closeAria')}
           >
             <X size={18} />
           </button>
@@ -83,10 +86,8 @@ export function VariablesDialog({ onClose }: VariablesDialogProps) {
           {variables.length === 0 && (
             <div className="variables-empty">
               <span className="variables-empty__mark">VARIABLE</span>
-              <h3>还没有定义变量</h3>
-              <p>
-                先创建一个「好感度」数值变量，或一个「是否见过她」开关变量，然后在选项、剧情块和条件节点里使用它。
-              </p>
+              <h3>{t('variables.emptyTitle')}</h3>
+              <p>{t('variables.emptyText')}</p>
             </div>
           )}
 
@@ -107,21 +108,25 @@ export function VariablesDialog({ onClose }: VariablesDialogProps) {
                     ) : (
                       <Hash size={13} />
                     )}
-                    {isBoolean ? '开关' : '数值'}
+                    {isBoolean
+                      ? t('variables.kindBoolean')
+                      : t('variables.kindNumber')}
                   </span>
                   <span className="variable-card__usage">
-                    {usage > 0 ? `被引用 ${usage} 次` : '尚未使用'}
+                    {usage > 0
+                      ? t('variables.usage', { count: usage })
+                      : t('variables.unused')}
                   </span>
                 </div>
 
                 <div className="variable-card__fields">
                   <label className="variable-field variable-field--name">
-                    <span>变量名称</span>
+                    <span>{t('variables.nameLabel')}</span>
                     <input
                       className="text-input"
                       value={variable.name}
                       maxLength={40}
-                      placeholder="例如：好感度"
+                      placeholder={t('variables.namePlaceholder')}
                       onChange={(event) =>
                         updateVariable(variable.id, {
                           name: event.target.value,
@@ -130,7 +135,7 @@ export function VariablesDialog({ onClose }: VariablesDialogProps) {
                       onBlur={() => {
                         if (!variable.name.trim()) {
                           updateVariable(variable.id, {
-                            name: '未命名变量',
+                            name: t('variables.unnamed'),
                           })
                         }
                       }}
@@ -138,7 +143,7 @@ export function VariablesDialog({ onClose }: VariablesDialogProps) {
                   </label>
 
                   <label className="variable-field variable-field--initial">
-                    <span>初始值</span>
+                    <span>{t('variables.initialLabel')}</span>
                     {isBoolean ? (
                       <select
                         className="text-input"
@@ -149,8 +154,8 @@ export function VariablesDialog({ onClose }: VariablesDialogProps) {
                           })
                         }
                       >
-                        <option value="false">否</option>
-                        <option value="true">是</option>
+                        <option value="false">{t('common.no')}</option>
+                        <option value="true">{t('common.yes')}</option>
                       </select>
                     ) : (
                       <input
@@ -170,8 +175,10 @@ export function VariablesDialog({ onClose }: VariablesDialogProps) {
                   <button
                     type="button"
                     className="icon-button icon-button--tiny variable-card__delete"
-                    title="删除变量"
-                    aria-label={`删除变量 ${variable.name}`}
+                    title={t('common.delete')}
+                    aria-label={t('variables.deleteAria', {
+                      name: variable.name,
+                    })}
                     onClick={() => handleDelete(variable)}
                   >
                     <Trash2 size={15} />
@@ -179,12 +186,12 @@ export function VariablesDialog({ onClose }: VariablesDialogProps) {
                 </div>
 
                 <label className="variable-field variable-field--description">
-                  <span>用途说明</span>
+                  <span>{t('variables.descriptionLabel')}</span>
                   <input
                     className="text-input"
                     value={variable.description}
                     maxLength={120}
-                    placeholder="例如：女主对男主的好感度"
+                    placeholder={t('variables.descriptionPlaceholder')}
                     onChange={(event) =>
                       updateVariable(variable.id, {
                         description: event.target.value,
@@ -203,7 +210,7 @@ export function VariablesDialog({ onClose }: VariablesDialogProps) {
               onClick={() => addVariable('number')}
             >
               <Plus size={15} />
-              新建数值变量
+              {t('variables.addNumber')}
             </button>
             <button
               type="button"
@@ -211,14 +218,14 @@ export function VariablesDialog({ onClose }: VariablesDialogProps) {
               onClick={() => addVariable('boolean')}
             >
               <Plus size={15} />
-              新建开关变量
+              {t('variables.addBoolean')}
             </button>
           </div>
         </div>
 
         <footer className="variables-dialog__footer">
-          <span>变量类型创建后固定；需要改变类型时请新建一个变量。</span>
-          <span>所有变量会随工程文件一起导出。</span>
+          <span>{t('variables.footerFixed')}</span>
+          <span>{t('variables.footerExport')}</span>
         </footer>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { CornerDownRight, Plus, Trash2 } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { useI18n } from '../../i18n'
 import { OPTION_COLORS } from '../../lib/constants'
 import { findEdgeForOption } from '../../lib/graph'
 import { useStoryStore } from '../../store/useStoryStore'
@@ -11,6 +12,7 @@ interface ChoiceInspectorProps {
 }
 
 export function ChoiceInspector({ node }: ChoiceInspectorProps) {
+  const { t } = useI18n()
   const nodes = useStoryStore((state) => state.nodes)
   const edges = useStoryStore((state) => state.edges)
   const variables = useStoryStore((state) => state.variables)
@@ -29,7 +31,7 @@ export function ChoiceInspector({ node }: ChoiceInspectorProps) {
   ).length
 
   const handleDelete = () => {
-    if (!window.confirm('确定删除这个选项节点吗？与它相连的线也会一起移除。')) {
+    if (!window.confirm(t('choiceInspector.confirmDelete'))) {
       return
     }
     deleteNode(node.id)
@@ -39,14 +41,14 @@ export function ChoiceInspector({ node }: ChoiceInspectorProps) {
     <div className="inspector__body">
       <div className="inspector__section">
         <label className="field-label" htmlFor={`choice-title-${node.id}`}>
-          选择标题
+          {t('choiceInspector.titleLabel')}
         </label>
         <input
           id={`choice-title-${node.id}`}
           className="text-input text-input--title"
           value={node.data.title}
           maxLength={50}
-          placeholder="玩家正在做什么选择？"
+          placeholder={t('choiceInspector.titlePlaceholder')}
           onChange={(event) =>
             updateChoiceTitle(node.id, event.target.value)
           }
@@ -55,9 +57,14 @@ export function ChoiceInspector({ node }: ChoiceInspectorProps) {
 
       <div className="inspector__section">
         <div className="inspector__section-head">
-          <span className="field-label">选项列表</span>
+          <span className="field-label">
+            {t('choiceInspector.optionsLabel')}
+          </span>
           <span className="inspector__badge">
-            {connectedCount}/{options.length} 已连接
+            {t('choiceInspector.connectedCount', {
+              connected: connectedCount,
+              total: options.length,
+            })}
           </span>
         </div>
 
@@ -85,8 +92,12 @@ export function ChoiceInspector({ node }: ChoiceInspectorProps) {
                     className="text-input option-editor__input"
                     value={option.label}
                     maxLength={40}
-                    placeholder={`选项 ${index + 1}`}
-                    aria-label={`选项 ${index + 1} 名称`}
+                    placeholder={t('choiceInspector.optionPlaceholder', {
+                      index: index + 1,
+                    })}
+                    aria-label={t('choiceInspector.optionAria', {
+                      index: index + 1,
+                    })}
                     onChange={(event) =>
                       updateOption(node.id, option.id, event.target.value)
                     }
@@ -98,10 +109,12 @@ export function ChoiceInspector({ node }: ChoiceInspectorProps) {
                     disabled={options.length <= 1}
                     title={
                       options.length <= 1
-                        ? '选项节点至少保留一个选项'
-                        : '删除这个选项'
+                        ? t('choiceInspector.keepOne')
+                        : t('choiceInspector.deleteOption')
                     }
-                    aria-label={`删除选项 ${index + 1}`}
+                    aria-label={t('choiceInspector.deleteOptionAria', {
+                      index: index + 1,
+                    })}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -115,22 +128,25 @@ export function ChoiceInspector({ node }: ChoiceInspectorProps) {
                   <CornerDownRight size={13} />
                   {target ? (
                     <span>
-                      {`连向${
-                        target.type === 'scene'
-                          ? '剧情块'
-                          : target.type === 'choice'
-                            ? '选项节点'
-                            : '条件节点'
-                      }「${target.data.title.trim() || '未命名'}」`}
+                      {t('choiceInspector.connectsTo', {
+                        type:
+                          target.type === 'scene'
+                            ? t('choiceInspector.targetScene')
+                            : target.type === 'choice'
+                              ? t('choiceInspector.targetChoice')
+                              : t('choiceInspector.targetCondition'),
+                        title:
+                          target.data.title.trim() || t('common.untitled'),
+                      })}
                     </span>
                   ) : (
-                    <span>从右侧的彩色圆点拖出一条线</span>
+                    <span>{t('choiceInspector.disconnected')}</span>
                   )}
                 </div>
 
                 <div className="option-editor__effects">
                   <span className="option-editor__effects-label">
-                    选择后变量变化
+                    {t('choiceInspector.effectsLabel')}
                   </span>
                   <EffectsEditor
                     compact
@@ -152,19 +168,19 @@ export function ChoiceInspector({ node }: ChoiceInspectorProps) {
           onClick={() => addOption(node.id)}
         >
           <Plus size={15} />
-          添加选项
+          {t('choiceInspector.addOption')}
         </button>
 
         <div className="inspector__tip">
           <span className="inspector__tip-mark">TIP</span>
-          每个选项右侧都有一个独立的连接点。把线拖到下一个剧情块、选项节点或条件节点，就能安排这条分支的后续。选项效果会在玩家选择后立即生效。
+          {t('choiceInspector.tip')}
         </div>
       </div>
 
       <div className="inspector__danger">
         <button type="button" className="danger-button" onClick={handleDelete}>
           <Trash2 size={15} />
-          删除此选项节点
+          {t('choiceInspector.delete')}
         </button>
       </div>
     </div>

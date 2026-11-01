@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react'
+import { useI18n } from '../../i18n'
 import { createId } from '../../lib/ids'
 import { createEffectForVariable } from '../../lib/variables'
 import type {
@@ -14,11 +15,13 @@ interface EffectsEditorProps {
   compact?: boolean
 }
 
-const NUMBER_OPERATIONS: Array<{ value: EffectOperation; label: string }> = [
-  { value: 'add', label: '增加' },
-  { value: 'subtract', label: '减少' },
-  { value: 'set', label: '设为' },
-]
+const NUMBER_OPERATIONS: EffectOperation[] = ['add', 'subtract', 'set']
+
+const OPERATION_KEYS = {
+  add: 'effects.addOperation',
+  subtract: 'effects.subtractOperation',
+  set: 'effects.setOperation',
+} as const
 
 export function EffectsEditor({
   effects,
@@ -26,6 +29,7 @@ export function EffectsEditor({
   onChange,
   compact = false,
 }: EffectsEditorProps) {
+  const { t } = useI18n()
   const addEffect = () => {
     const variable = variables[0]
     if (!variable) return
@@ -78,8 +82,8 @@ export function EffectsEditor({
       {effects.length === 0 && (
         <p className="effects-editor__empty">
           {variables.length === 0
-            ? '还没有变量，请先在顶栏「变量」中创建。'
-            : '暂时没有变量变化。'}
+            ? t('effects.noVariables')
+            : t('effects.noEffects')}
         </p>
       )}
 
@@ -94,7 +98,7 @@ export function EffectsEditor({
             <select
               className="mini-select effect-row__variable"
               value={effect.variableId}
-              aria-label="变量"
+              aria-label={t('effects.variableAria')}
               onChange={(event) =>
                 handleVariableChange(effect, event.target.value)
               }
@@ -109,7 +113,7 @@ export function EffectsEditor({
             <select
               className="mini-select effect-row__operation"
               value={isBoolean ? 'set' : effect.operation}
-              aria-label="操作"
+              aria-label={t('effects.operationAria')}
               disabled={isBoolean}
               onChange={(event) =>
                 updateEffect(effect.id, {
@@ -121,35 +125,36 @@ export function EffectsEditor({
                 })
               }
             >
-              {(isBoolean ? [NUMBER_OPERATIONS[2]] : NUMBER_OPERATIONS).map(
-                (operation) => (
-                  <option key={operation.value} value={operation.value}>
-                    {operation.label}
-                  </option>
-                ),
-              )}
+              {(isBoolean
+                ? NUMBER_OPERATIONS.slice(2)
+                : NUMBER_OPERATIONS
+              ).map((operation) => (
+                <option key={operation} value={operation}>
+                  {t(OPERATION_KEYS[operation])}
+                </option>
+              ))}
             </select>
 
             {isBoolean ? (
               <select
                 className="mini-select effect-row__value"
                 value={effect.value ? 'true' : 'false'}
-                aria-label="变量值"
+                aria-label={t('effects.valueAria')}
                 onChange={(event) =>
                   updateEffect(effect.id, {
                     value: event.target.value === 'true',
                   })
                 }
               >
-                <option value="true">是</option>
-                <option value="false">否</option>
+                <option value="true">{t('common.yes')}</option>
+                <option value="false">{t('common.no')}</option>
               </select>
             ) : (
               <input
                 className="mini-input effect-row__value"
                 type="number"
                 value={Number(effect.value)}
-                aria-label="变量数值"
+                aria-label={t('effects.numberAria')}
                 onChange={(event) => {
                   const value = Number(event.target.value)
                   updateEffect(effect.id, {
@@ -162,8 +167,8 @@ export function EffectsEditor({
             <button
               type="button"
               className="icon-button icon-button--tiny"
-              title="删除变量变化"
-              aria-label="删除变量变化"
+              title={t('effects.delete')}
+              aria-label={t('effects.delete')}
               onClick={() =>
                 onChange(effects.filter((item) => item.id !== effect.id))
               }
@@ -181,7 +186,7 @@ export function EffectsEditor({
         disabled={variables.length === 0}
       >
         <Plus size={13} />
-        添加变量变化
+        {t('effects.add')}
       </button>
     </div>
   )

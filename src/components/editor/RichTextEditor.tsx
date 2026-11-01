@@ -6,6 +6,7 @@ import {
   type ClipboardEvent,
   type CSSProperties,
 } from 'react'
+import { useI18n } from '../../i18n'
 import { clampFontSize } from '../../lib/constants'
 import { isEditorEmpty } from '../../lib/html'
 import { EditorToolbar } from './EditorToolbar'
@@ -35,9 +36,11 @@ export function RichTextEditor({
   fontSize,
   onChange,
   variant = 'sidebar',
-  placeholder = '在这里写下这一幕的剧情、对白和旁白……',
+  placeholder,
   autoFocus = false,
 }: RichTextEditorProps) {
+  const { t } = useI18n()
+  const placeholderText = placeholder ?? t('editor.placeholder')
   const editorRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(EMPTY_FORMAT_STATE)
   const [isEmpty, setIsEmpty] = useState(() => isEditorEmpty(html))
@@ -154,7 +157,7 @@ export function RichTextEditor({
       <div className="rich-editor__surface">
         {isEmpty && (
           <div className="rich-editor__placeholder" aria-hidden="true">
-            {placeholder}
+            {placeholderText}
           </div>
         )}
         <div
@@ -164,7 +167,7 @@ export function RichTextEditor({
           suppressContentEditableWarning
           role="textbox"
           aria-multiline="true"
-          aria-label="剧情文本编辑器"
+          aria-label={t('editor.aria')}
           spellCheck={false}
           style={{ fontSize: `${clampFontSize(fontSize)}px` }}
           onInput={emitChange}

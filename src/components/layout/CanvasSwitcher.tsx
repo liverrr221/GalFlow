@@ -6,9 +6,11 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react'
+import { useI18n } from '../../i18n'
 import { useStoryStore } from '../../store/useStoryStore'
 
 export function CanvasSwitcher() {
+  const { t } = useI18n()
   const activeCanvasId = useStoryStore((state) => state.activeCanvasId)
   const inactiveCanvases = useStoryStore(
     (state) => state.inactiveCanvases,
@@ -26,14 +28,14 @@ export function CanvasSwitcher() {
   const canvases = [
     {
       id: activeCanvasId,
-      title: activeTitle.trim() || '未命名剧情',
+      title: activeTitle.trim() || t('common.untitledStory'),
       nodeCount: activeNodes.length,
       variableCount: activeVariables.length,
       isActive: true,
     },
     ...inactiveCanvases.map((canvas) => ({
       id: canvas.id,
-      title: canvas.title.trim() || '未命名剧情',
+      title: canvas.title.trim() || t('common.untitledStory'),
       nodeCount: canvas.nodes.length,
       variableCount: canvas.variables.length,
       isActive: false,
@@ -78,8 +80,8 @@ export function CanvasSwitcher() {
     if (
       !window.confirm(
         isActive
-          ? `确定删除当前画布「${title}」吗？删除后会切换到另一个画布。`
-          : `确定删除画布「${title}」吗？`,
+          ? t('canvasSwitcher.confirmDeleteActive', { title })
+          : t('canvasSwitcher.confirmDelete', { title }),
       )
     ) {
       return
@@ -95,11 +97,11 @@ export function CanvasSwitcher() {
         className={`canvas-switcher__trigger${open ? ' is-open' : ''}`}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="切换画布"
+        aria-label={t('canvasSwitcher.switchAria')}
         onClick={() => setOpen((value) => !value)}
       >
         <Layers size={13} />
-        <span>画布</span>
+        <span>{t('common.canvas')}</span>
         <span className="canvas-switcher__count">{canvases.length}</span>
         <ChevronDown size={12} className="canvas-switcher__chevron" />
       </button>
@@ -107,8 +109,8 @@ export function CanvasSwitcher() {
         type="button"
         className="canvas-switcher__add"
         onClick={handleCreate}
-        aria-label="新增画布"
-        title="新增空白画布"
+        aria-label={t('canvasSwitcher.addAria')}
+        title={t('canvasSwitcher.addTitle')}
       >
         <Plus size={14} />
       </button>
@@ -116,8 +118,10 @@ export function CanvasSwitcher() {
       {open && (
         <div className="canvas-switcher__menu" role="menu">
           <div className="canvas-switcher__menu-head">
-            <span>所有画布</span>
-            <span>{canvases.length} 个</span>
+            <span>{t('canvasSwitcher.all')}</span>
+            <span>
+              {t('canvasSwitcher.count', { count: canvases.length })}
+            </span>
           </div>
 
           <div className="canvas-switcher__list">
@@ -146,7 +150,10 @@ export function CanvasSwitcher() {
                   <span className="canvas-switcher__item-text">
                     <strong>{canvas.title}</strong>
                     <small>
-                      {canvas.nodeCount} 节点 · {canvas.variableCount} 变量
+                      {t('canvasSwitcher.nodeVariableCount', {
+                        nodes: canvas.nodeCount,
+                        variables: canvas.variableCount,
+                      })}
                     </small>
                   </span>
                 </button>
@@ -157,10 +164,12 @@ export function CanvasSwitcher() {
                     className="icon-button icon-button--tiny canvas-switcher__delete"
                     title={
                       canvas.isActive
-                        ? '删除当前画布并切换到另一个画布'
-                        : '删除画布'
+                        ? t('canvasSwitcher.deleteActiveTitle')
+                        : t('canvasSwitcher.deleteTitle')
                     }
-                    aria-label={`删除画布 ${canvas.title}`}
+                    aria-label={t('canvasSwitcher.deleteAria', {
+                      title: canvas.title,
+                    })}
                     onClick={() =>
                       handleDelete(
                         canvas.id,
@@ -182,7 +191,7 @@ export function CanvasSwitcher() {
             onClick={handleCreate}
           >
             <Plus size={14} />
-            新建空白画布
+            {t('canvasSwitcher.newBlank')}
           </button>
         </div>
       )}

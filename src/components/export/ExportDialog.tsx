@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, Copy, Download, FileOutput, X } from 'lucide-react'
+import { useI18n } from '../../i18n'
 import { downloadText } from '../../lib/download'
 import { buildStoryText, buildTextFileName } from '../../lib/exportStory'
 import { getStoryStats } from '../../lib/graph'
@@ -10,6 +11,7 @@ interface ExportDialogProps {
 }
 
 export function ExportDialog({ onClose }: ExportDialogProps) {
+  const { language, t } = useI18n()
   const title = useStoryStore((state) => state.title)
   const variables = useStoryStore((state) => state.variables)
   const nodes = useStoryStore((state) => state.nodes)
@@ -28,8 +30,9 @@ export function ExportDialog({ onClose }: ExportDialogProps) {
         nodes,
         edges,
         generatedAt,
+        language,
       }),
-    [title, variables, nodes, edges, generatedAt],
+    [title, variables, nodes, edges, generatedAt, language],
   )
   const textCharacterCount = text.replace(/\s/g, '').length
 
@@ -72,13 +75,13 @@ export function ExportDialog({ onClose }: ExportDialogProps) {
     try {
       const result = await downloadText(
         text,
-        buildTextFileName(title),
+        buildTextFileName(title, language),
         'text/plain;charset=utf-8',
       )
       if (result.saved) setDownloaded(true)
     } catch (error) {
       window.alert(
-        error instanceof Error ? error.message : '文本文件保存失败',
+        error instanceof Error ? error.message : t('export.saveError'),
       )
     }
   }
@@ -101,14 +104,14 @@ export function ExportDialog({ onClose }: ExportDialogProps) {
             <FileOutput size={20} />
           </span>
           <div className="export-dialog__heading">
-            <h2 id="export-dialog-title">导出剧情文本</h2>
-            <p>根据当前画布生成，只在需要时整理成完整的一份文本。</p>
+            <h2 id="export-dialog-title">{t('export.title')}</h2>
+            <p>{t('export.subtitle')}</p>
           </div>
           <button
             type="button"
             className="icon-button icon-button--soft"
             onClick={onClose}
-            aria-label="关闭导出窗"
+            aria-label={t('export.closeAria')}
           >
             <X size={18} />
           </button>
@@ -116,39 +119,41 @@ export function ExportDialog({ onClose }: ExportDialogProps) {
 
         <div className="export-dialog__stats">
           <span>
-            <strong>{stats.sceneCount}</strong> 个场景
+            {t('export.scenes', { count: stats.sceneCount })}
           </span>
           <span>
-            <strong>{stats.choiceCount}</strong> 个选择
+            {t('export.choices', { count: stats.choiceCount })}
           </span>
           <span>
-            <strong>{stats.conditionCount}</strong> 个条件
+            {t('export.conditions', { count: stats.conditionCount })}
           </span>
           <span>
-            <strong>{variables.length}</strong> 个变量
+            {t('export.variables', { count: variables.length })}
           </span>
           <span>
-            <strong>{stats.endingCount}</strong> 个结局
+            {t('export.endings', { count: stats.endingCount })}
           </span>
           <span>
-            <strong>{stats.unconnectedOptionCount}</strong> 个待连接选项
+            {t('export.unconnected', {
+              count: stats.unconnectedOptionCount,
+            })}
           </span>
           <span>
-            <strong>{textCharacterCount}</strong> 字
+            {t('export.characters', { count: textCharacterCount })}
           </span>
         </div>
 
         <div className="export-dialog__preview">
           <div className="export-dialog__preview-bar">
-            <span>纯文本预览</span>
-            <span>流程大纲 + 场景正文 + 结局清单</span>
+            <span>{t('export.preview')}</span>
+            <span>{t('export.previewMeta')}</span>
           </div>
           <pre>{text}</pre>
         </div>
 
         <footer className="export-dialog__footer">
           <span className="export-dialog__hint">
-            下载后即可用任意文本编辑器打开。
+            {t('export.footer')}
           </span>
           <div className="export-dialog__actions">
             <button
@@ -158,7 +163,7 @@ export function ExportDialog({ onClose }: ExportDialogProps) {
               aria-live="polite"
             >
               {copied ? <Check size={16} /> : <Copy size={16} />}
-              {copied ? '已复制' : '复制文本'}
+              {copied ? t('export.copied') : t('export.copy')}
             </button>
             <button
               type="button"
@@ -166,7 +171,7 @@ export function ExportDialog({ onClose }: ExportDialogProps) {
               onClick={handleDownload}
             >
               {downloaded ? <Check size={16} /> : <Download size={16} />}
-              {downloaded ? '已保存' : '下载 .txt'}
+              {downloaded ? t('export.downloaded') : t('export.download')}
             </button>
           </div>
         </footer>

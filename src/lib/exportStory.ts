@@ -1,4 +1,5 @@
 import { optionLetter } from './constants'
+import { translate, type Language } from '../i18n/translations'
 import {
   buildStoryGraphIndex,
   findEdgeForHandle,
@@ -24,6 +25,7 @@ interface BuildStoryTextOptions {
   edges: StoryEdge[]
   variables?: StoryVariable[]
   generatedAt?: Date
+  language?: Language
 }
 
 const DOUBLE_RULE = '═'.repeat(60)
@@ -39,23 +41,40 @@ function formatDateTime(date: Date): string {
   )} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-function displayTitle(node: StoryNode): string {
+function displayTitle(node: StoryNode, language: Language): string {
   const title = node.data.title.trim()
   if (title) return title
-  if (node.type === 'scene') return '未命名场景'
-  if (node.type === 'choice') return '未命名选择'
-  return '未命名条件'
+  if (node.type === 'scene') return translate(language, 'lib.untitledScene')
+  if (node.type === 'choice') return translate(language, 'lib.untitledChoice')
+  return translate(language, 'lib.untitledCondition')
 }
 
-function hasAutomaticTitle(node: StoryNode, title: string): boolean {
-  const prefix =
-    node.type === 'scene' ? '场景' : node.type === 'choice' ? '选择' : '条件'
+function hasAutomaticTitle(
+  node: StoryNode,
+  title: string,
+  language: Language,
+): boolean {
+  const prefix = translate(
+    language,
+    node.type === 'scene'
+      ? 'lib.scene'
+      : node.type === 'choice'
+        ? 'lib.choice'
+        : 'lib.condition',
+  )
   return new RegExp(`^${prefix}\\s*\\d+$`).test(title)
 }
 
-function optionLabel(label: string, index: number): string {
+function optionLabel(
+  label: string,
+  index: number,
+  language: Language,
+): string {
   const trimmed = label.trim()
-  return trimmed || `选项 ${optionLetter(index)}`
+  return (
+    trimmed ||
+    translate(language, 'lib.optionNumber', { index: optionLetter(index) })
+  )
 }
 
 /**
@@ -69,10 +88,15 @@ export function buildStoryText({
   edges,
   variables = [],
   generatedAt = new Date(),
+  language = 'zh',
 }: BuildStoryTextOptions): string {
-  const storyTitle = title.trim() || '未命名剧情'
+  const tr = (
+    key: Parameters<typeof translate>[1],
+    params: Record<string, string | number> = {},
+  ) => translate(language, key, params)
+  const storyTitle = title.trim() || tr('lib.untitledStory')
   const nodeMap = new Map(nodes.map((node) => [node.id, node]))
-  const index = buildStoryGraphIndex(nodes, edges)
+  const index = buildStoryGraphIndex(nodes, edges, language)
   const stats = getStoryStats(nodes, edges)
   const visited = new Set<string>()
   const path = new Set<string>()
@@ -81,25 +105,37 @@ export function buildStoryText({
   const labelOf = (node: StoryNode) =>
     index.labelById.get(node.id) ??
     (node.type === 'scene'
-      ? '场景'
+      ? tr('lib.scene')
       : node.type === 'choice'
-        ? '选择'
-        : '条件')
+        ? tr('lib.choice')
+        : tr('lib.condition'))
 
   const reference = (node: StoryNode): string => {
     const label = labelOf(node)
-    const nodeTitle = displayTitle(node)
-    return nodeTitle === label || hasAutomaticTitle(node, nodeTitle)
+    const nodeTitle = displayTitle(node, language)
+    return (
+      nodeTitle === label ||
+      hasAutomaticTitle(node, nodeTitle, language)
+    )
       ? label
-      : `${label}《${nodeTitle}》`
+      : language === 'zh'
+        ? `${label}《${nodeTitle}》`
+        : `${label}: ${nodeTitle}`
   }
 
   const heading = (node: StoryNode): string => {
     const label = labelOf(node)
-    const nodeTitle = displayTitle(node)
-    return nodeTitle === label || hasAutomaticTitle(node, nodeTitle)
-      ? `【${label}】`
-      : `【${label}】${nodeTitle}`
+    const nodeTitle = displayTitle(node, language)
+    return (
+      nodeTitle === label ||
+      hasAutomaticTitle(node, nodeTitle, language)
+    )
+      ? language === 'zh'
+        ? `【${label}】`
+        : label
+      : language === 'zh'
+        ? `【${label}】${nodeTitle}`
+        : `${label}: ${nodeTitle}`
   }
 
   const descriptionOf = (node: StoryNode): string => {
@@ -107,6 +143,7 @@ export function buildStoryText({
     const effectText = formatEffectList(
       node.data.effects ?? [],
       variables,
+      language,
     )
     return effectText ? `　⚙ ${effectText}` : ''
   }
@@ -130,12 +167,16 @@ export function buildStoryText({
     if (!target) return
 
     if (currentPath.has(target.id)) {
-      lines.push(`${prefix}${connector} ${reference(target)}　↻ 循环至此`)
+      lines.push(
+        `${prefix}${connector} ${reference(target)}　${tr('exportText.loop')}`,
+      )
       return
     }
 
     if (visited.has(target.id)) {
-      lines.push(`${prefix}${connector} ${reference(target)}　↪ 汇合处`)
+      lines.push(
+        `${prefix}${connector} ${reference(target)}　${tr('exportText.merge')}`,
+      )
       return
     }
 
@@ -161,7 +202,7 @@ export function buildStoryText({
       const outgoing = sortOutgoingEdges(node, edges)
 
       if (outgoing.length === 0) {
-        lines.push(`${base}◼ 剧情在此结束`)
+        lines.push(`${base}${tr('exportText.endsHere')}`)
         return
       }
 
@@ -182,7 +223,7 @@ export function buildStoryText({
       const options = node.data.options
 
       if (options.length === 0) {
-        lines.push(`${base}（尚未添加选项）`)
+        lines.push(`${base}${tr('exportText.noOptions')}`)
         return
       }
 
@@ -190,12 +231,13 @@ export function buildStoryText({
         const isLast = optionIndex === options.length - 1
         const branch = isLast ? '└─' : '├─'
         const optionPrefix = `${base}${isLast ? '   ' : '│  '}`
-        const label = optionLabel(option.label, optionIndex)
+        const label = optionLabel(option.label, optionIndex, language)
         const edge = findEdgeForOption(node.id, option.id, edges)
         const target = edge ? nodeMap.get(edge.target) : undefined
         const effectText = formatEffectList(
           option.effects ?? [],
           variables,
+          language,
         )
 
         lines.push(
@@ -206,17 +248,25 @@ export function buildStoryText({
         }
 
         if (!target) {
-          lines.push(`${optionPrefix}→ （未连接）`)
+          lines.push(`${optionPrefix}→ ${tr('exportText.notConnected')}`)
           return
         }
 
         if (currentPath.has(target.id)) {
-          lines.push(`${optionPrefix}→ ${reference(target)}　↻ 循环至此`)
+          lines.push(
+            `${optionPrefix}→ ${reference(target)}　${tr(
+              'exportText.loop',
+            )}`,
+          )
           return
         }
 
         if (visited.has(target.id)) {
-          lines.push(`${optionPrefix}→ ${reference(target)}　↪ 汇合处`)
+          lines.push(
+            `${optionPrefix}→ ${reference(target)}　${tr(
+              'exportText.merge',
+            )}`,
+          )
           return
         }
 
@@ -233,14 +283,18 @@ export function buildStoryText({
     const branches = [
       ...conditions.map((condition, index) => ({
         key: condition.id,
-        label: `若 ${formatConditionCase(condition, variables)}`,
+        label: `${tr('lib.if')} ${formatConditionCase(
+          condition,
+          variables,
+          language,
+        )}`,
         index,
       })),
-      { key: 'else', label: '否则', index: conditions.length },
+      { key: 'else', label: tr('lib.else'), index: conditions.length },
     ]
 
     if (conditions.length === 0) {
-      lines.push(`${base}（尚未添加条件规则，只有「否则」出口）`)
+      lines.push(`${base}${tr('exportText.noCases')}`)
     }
 
     branches.forEach((branch, branchIndex) => {
@@ -252,17 +306,25 @@ export function buildStoryText({
       lines.push(`${base}${isLast ? '└─' : '├─'} ${branch.label}`)
 
       if (!target) {
-        lines.push(`${branchPrefix}→ （未连接）`)
+        lines.push(`${branchPrefix}→ ${tr('exportText.notConnected')}`)
         return
       }
 
       if (currentPath.has(target.id)) {
-        lines.push(`${branchPrefix}→ ${reference(target)}　↻ 循环至此`)
+        lines.push(
+          `${branchPrefix}→ ${reference(target)}　${tr(
+            'exportText.loop',
+          )}`,
+        )
         return
       }
 
       if (visited.has(target.id)) {
-        lines.push(`${branchPrefix}→ ${reference(target)}　↪ 汇合处`)
+        lines.push(
+          `${branchPrefix}→ ${reference(target)}　${tr(
+            'exportText.merge',
+          )}`,
+        )
         return
       }
 
@@ -283,25 +345,37 @@ export function buildStoryText({
   }
 
   lines.push(`《${storyTitle}》`)
-  lines.push('Galgame 剧情流程文本')
+  lines.push(tr('exportText.title'))
   lines.push(
-    `生成时间：${formatDateTime(generatedAt)}　·　节点 ${nodes.length} 个　·　连线 ${edges.length} 条`,
+    tr('exportText.generated', {
+      date: formatDateTime(generatedAt),
+      nodes: nodes.length,
+      edges: edges.length,
+    }),
   )
   lines.push('')
 
   if (variables.length > 0) {
     lines.push(DOUBLE_RULE)
-    lines.push('变量设定')
+    lines.push(tr('exportText.variableSection'))
     lines.push(DOUBLE_RULE)
     lines.push('')
 
     variables.forEach((variable) => {
-      const kind = variable.kind === 'number' ? '数值' : '开关'
+      const kind =
+        variable.kind === 'number'
+          ? tr('exportText.number')
+          : tr('exportText.boolean')
       const description = variable.description.trim()
       lines.push(
-        `- ${variable.name}（${kind}，初始值 ${formatVariableInitialValue(
-          variable,
-        )}）${description ? `：${description}` : ''}`,
+        tr('exportText.variableLine', {
+          name: variable.name,
+          kind,
+          value: formatVariableInitialValue(variable, language),
+          description: description
+            ? `${language === 'zh' ? '：' : ': '}${description}`
+            : '',
+        }),
       )
     })
 
@@ -309,30 +383,30 @@ export function buildStoryText({
   }
 
   lines.push(DOUBLE_RULE)
-  lines.push('一、剧情流程')
+  lines.push(tr('exportText.outline'))
   lines.push(DOUBLE_RULE)
   lines.push('')
-  lines.push(
-    '图例：◼ 剧情结束　↪ 汇合到已展开节点　↻ 循环回到上方节点　⚙ 变量变化；编号按流程顺序自动生成。',
-  )
+  lines.push(tr('exportText.legend'))
   lines.push('')
 
   if (nodes.length === 0) {
-    lines.push('（画布中还没有剧情节点。添加剧情块与选项节点后，再回来导出吧。）')
+    lines.push(tr('exportText.emptyOutline'))
   } else {
     const startNodes = index.startIds
       .map((id) => nodeMap.get(id))
       .filter((node): node is StoryNode => Boolean(node))
 
     if (startNodes.length === 0) {
-      lines.push('（未找到明确的起点；以下从画布中的第一个节点开始展开。）')
+      lines.push(tr('exportText.noStart'))
       lines.push('')
     }
 
     startNodes.forEach((node, startIndex) => {
       if (startIndex > 0) lines.push('')
       const rootLabel =
-        startNodes.length > 1 ? `起点 ${startIndex + 1}：` : '起点：'
+        startNodes.length > 1
+          ? tr('exportText.startNumbered', { index: startIndex + 1 })
+          : tr('exportText.start')
       walkRoot(node, rootLabel)
     })
 
@@ -345,7 +419,7 @@ export function buildStoryText({
 
     if (remaining.length > 0) {
       if (startNodes.length > 0) lines.push('')
-      lines.push('◆ 未连通的片段：')
+      lines.push(tr('exportText.unconnectedFragment'))
       lines.push('')
 
       remaining.forEach((node) => {
@@ -362,12 +436,12 @@ export function buildStoryText({
 
   lines.push('')
   lines.push(DOUBLE_RULE)
-  lines.push('二、场景、选项与条件正文')
+  lines.push(tr('exportText.body'))
   lines.push(DOUBLE_RULE)
   lines.push('')
 
   if (nodes.length === 0) {
-    lines.push('（暂无内容）')
+    lines.push(tr('exportText.emptyBody'))
   } else {
     index.orderedIds.forEach((id) => {
       const node = nodeMap.get(id)
@@ -378,21 +452,24 @@ export function buildStoryText({
 
       if (node.type === 'scene') {
         const plain = htmlToPlainText(node.data.content)
-        lines.push(plain || '（尚未填写剧情文本）')
+        lines.push(plain || tr('exportText.emptyScene'))
 
         const effectText = formatEffectList(
           node.data.effects ?? [],
           variables,
+          language,
         )
         if (effectText) {
           lines.push('')
-          lines.push(`变量变化：${effectText}`)
+          lines.push(
+            tr('exportText.effectsLine', { effects: effectText }),
+          )
         }
 
         const outgoing = sortOutgoingEdges(node, edges)
         if (outgoing.length === 0) {
           lines.push('')
-          lines.push('（剧情在此结束）')
+          lines.push(tr('exportText.sceneEnds'))
         } else {
           const nextReferences = outgoing
             .map((edge) => targetReference(edge))
@@ -400,14 +477,20 @@ export function buildStoryText({
 
           if (nextReferences.length > 0) {
             lines.push('')
-            lines.push(`↳ 下一步：${nextReferences.join('、')}`)
+            lines.push(
+              tr('exportText.next', {
+                targets: nextReferences.join(
+                  tr('lib.listSeparator'),
+                ),
+              }),
+            )
           }
         }
       } else if (node.type === 'choice') {
         const options = node.data.options
 
         if (options.length === 0) {
-          lines.push('（尚未添加选项）')
+          lines.push(tr('exportText.noOptions'))
         } else {
           options.forEach((option, optionIndex) => {
             const edge = findEdgeForOption(node.id, option.id, edges)
@@ -416,15 +499,23 @@ export function buildStoryText({
               `${optionLetter(optionIndex)}. ${optionLabel(
                 option.label,
                 optionIndex,
-              )} → ${target ? reference(target) : '（未连接）'}`,
+                language,
+              )} → ${
+                target ? reference(target) : tr('exportText.notConnected')
+              }`,
             )
 
             const effectText = formatEffectList(
               option.effects ?? [],
               variables,
+              language,
             )
             if (effectText) {
-              lines.push(`   变量变化：${effectText}`)
+              lines.push(
+                `   ${tr('exportText.effectsLine', {
+                  effects: effectText,
+                })}`,
+              )
             }
           })
         }
@@ -432,10 +523,10 @@ export function buildStoryText({
         const conditions = node.data.cases
 
         if (conditions.length === 0) {
-          lines.push('（尚未添加条件规则）')
+          lines.push(tr('exportText.noConditions'))
         }
 
-        lines.push('判断顺序：')
+        lines.push(tr('exportText.order'))
 
         conditions.forEach((condition, conditionIndex) => {
           const edge = findEdgeForHandle(
@@ -445,10 +536,13 @@ export function buildStoryText({
           )
           const target = edge ? nodeMap.get(edge.target) : undefined
           lines.push(
-            `${conditionIndex + 1}. 若 ${formatConditionCase(
+            `${conditionIndex + 1}. ${tr('lib.if')} ${formatConditionCase(
               condition,
               variables,
-            )} → ${target ? reference(target) : '（未连接）'}`,
+              language,
+            )} → ${
+              target ? reference(target) : tr('exportText.notConnected')
+            }`,
           )
         })
 
@@ -457,7 +551,11 @@ export function buildStoryText({
           ? nodeMap.get(elseEdge.target)
           : undefined
         lines.push(
-          `否则 → ${elseTarget ? reference(elseTarget) : '（未连接）'}`,
+          tr('exportText.elseLine', {
+            target: elseTarget
+              ? reference(elseTarget)
+              : tr('exportText.notConnected'),
+          }),
         )
       }
 
@@ -466,7 +564,7 @@ export function buildStoryText({
   }
 
   lines.push(DOUBLE_RULE)
-  lines.push('三、结局与待补全')
+  lines.push(tr('exportText.ends'))
   lines.push(DOUBLE_RULE)
   lines.push('')
 
@@ -495,7 +593,11 @@ export function buildStoryText({
       .map((condition, index) => ({
         node,
         index,
-        label: `若 ${formatConditionCase(condition, variables)}`,
+        label: `${tr('lib.if')} ${formatConditionCase(
+          condition,
+          variables,
+          language,
+        )}`,
         connected: Boolean(findEdgeForHandle(node.id, condition.id, edges)),
       }))
       .filter((item) => !item.connected)
@@ -510,7 +612,7 @@ export function buildStoryText({
       })),
       ...(elseConnected
         ? []
-        : [{ node, label: '否则', index: node.data.cases.length }]),
+        : [{ node, label: tr('lib.else'), index: node.data.cases.length }]),
     ]
   })
 
@@ -519,32 +621,35 @@ export function buildStoryText({
     unconnectedOptions.length === 0 &&
     unconnectedConditions.length === 0
   ) {
-    lines.push('本剧情所有场景与选项均已连接。')
+    lines.push(tr('exportText.allConnected'))
   } else {
     if (endingNodes.length > 0) {
       lines.push(
-        `结局 ${endingNodes.length} 个：${endingNodes
-          .map((node) => reference(node))
-          .join('、')}`,
+        tr('exportText.endings', {
+          count: endingNodes.length,
+          titles: endingNodes
+            .map((node) => reference(node))
+            .join(tr('lib.listSeparator')),
+        }),
       )
     }
 
     if (unconnectedOptions.length > 0) {
       lines.push('')
-      lines.push('待连接的选项：')
+      lines.push(tr('exportText.pendingOptions'))
 
       unconnectedOptions.forEach(({ node, option, optionIndex }) => {
         lines.push(
           `- ${reference(node)} → ${optionLetter(
             optionIndex,
-          )}. ${optionLabel(option.label, optionIndex)}`,
+          )}. ${optionLabel(option.label, optionIndex, language)}`,
         )
       })
     }
 
     if (unconnectedConditions.length > 0) {
       lines.push('')
-      lines.push('待连接的条件分支：')
+      lines.push(tr('exportText.pendingConditions'))
       unconnectedConditions.forEach(({ node, label }) => {
         lines.push(`- ${reference(node)} → ${label}`)
       })
@@ -553,20 +658,33 @@ export function buildStoryText({
 
   lines.push('')
   lines.push(
-    `统计：场景 ${stats.sceneCount} 个 · 选项节点 ${stats.choiceCount} 个 · 条件节点 ${stats.conditionCount} 个 · 变量 ${variables.length} 个 · 分支选项 ${stats.optionCount} 个 · 起点 ${stats.startCount} 个`,
+    tr('exportText.stats', {
+      scenes: stats.sceneCount,
+      choices: stats.choiceCount,
+      conditions: stats.conditionCount,
+      variables: variables.length,
+      options: stats.optionCount,
+      starts: stats.startCount,
+    }),
   )
   lines.push('')
-  lines.push('—— 由 GalFlow 生成 ——')
+  lines.push(tr('exportText.generatedBy'))
 
   return `${lines.join('\n').replace(/\n{4,}/g, '\n\n\n').trim()}\n`
 }
 
-export function buildTextFileName(title: string): string {
+export function buildTextFileName(
+  title: string,
+  language: Language = 'zh',
+): string {
   const safe = title
     .trim()
     .replace(/[\\/:*?"<>|]/g, '')
     .replace(/\s+/g, '_')
     .slice(0, 48)
 
-  return `${safe || '未命名剧情'}_剧情流程.txt`
+  return `${safe || translate(language, 'lib.untitledStory')}_${translate(
+    language,
+    'exportText.fileSuffix',
+  )}.txt`
 }

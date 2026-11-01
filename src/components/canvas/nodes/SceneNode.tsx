@@ -1,5 +1,6 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { FileText, Maximize2 } from 'lucide-react'
+import { useI18n } from '../../../i18n'
 import { countTextCharacters, htmlToPreview } from '../../../lib/html'
 import type { SceneFlowNode } from '../../../types/story'
 
@@ -8,7 +9,8 @@ export function SceneNode({
   selected,
   isConnectable,
 }: NodeProps<SceneFlowNode>) {
-  const title = data.title.trim() || '未命名场景'
+  const { t } = useI18n()
+  const title = data.title.trim() || t('scene.untitled')
   const preview = htmlToPreview(data.content, 150)
   const characterCount = countTextCharacters(data.content)
 
@@ -27,23 +29,25 @@ export function SceneNode({
           <span className="scene-node__kicker-dot" />
           SCENE
         </span>
-        <span className="scene-node__count">{characterCount} 字</span>
+        <span className="scene-node__count">
+          {t('common.chars', { count: characterCount })}
+        </span>
       </div>
 
       <h3 className="scene-node__title">{title}</h3>
 
       <p className={`scene-node__preview${preview ? '' : ' is-empty'}`}>
-        {preview || '点击后在右侧写下这一幕的剧情、对白和旁白……'}
+        {preview || t('scene.placeholder')}
       </p>
 
       <div className="scene-node__footer">
         <span className="scene-node__meta">
           <FileText size={12} strokeWidth={1.9} />
-          剧情块
+          {t('scene.footer')}
         </span>
         <span className="scene-node__hint">
           <Maximize2 size={11} strokeWidth={2} />
-          双击展开
+          {t('scene.doubleClick')}
         </span>
       </div>
 

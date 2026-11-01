@@ -1,4 +1,5 @@
 import { MarkerType } from '@xyflow/react'
+import { tCurrent } from '../i18n'
 import { clampFontSize } from './constants'
 import { createId } from './ids'
 import { formatConditionCase } from './variables'
@@ -152,7 +153,7 @@ function safeBaseName(title: string): string {
       .trim()
       .replace(/[\\/:*?"<>|]/g, '')
       .replace(/\s+/g, '_')
-      .slice(0, 48) || '未命名剧情'
+      .slice(0, 48) || tCurrent('lib.untitledStory')
   )
 }
 
@@ -160,7 +161,9 @@ function normalizeVariables(raw: unknown): StoryVariable[] {
   if (!Array.isArray(raw)) return []
 
   if (raw.length > MAX_VARIABLES) {
-    throw new Error(`变量数量过多（最多 ${MAX_VARIABLES} 个）`)
+    throw new Error(
+      tCurrent('lib.tooManyVariables', { count: MAX_VARIABLES }),
+    )
   }
 
   const seen = new Set<string>()
@@ -168,7 +171,9 @@ function normalizeVariables(raw: unknown): StoryVariable[] {
 
   raw.forEach((item, index) => {
     if (!isRecord(item)) {
-      throw new Error(`第 ${index + 1} 个变量格式不正确`)
+      throw new Error(
+        tCurrent('lib.invalidVariable', { index: index + 1 }),
+      )
     }
 
     const kind: VariableKind =
@@ -176,7 +181,7 @@ function normalizeVariables(raw: unknown): StoryVariable[] {
     let id = asString(item.id).trim()
     if (!id) id = createId('var')
     if (seen.has(id)) {
-      throw new Error(`变量 ID 重复：${id}`)
+      throw new Error(tCurrent('lib.duplicateVariableId', { id }))
     }
     seen.add(id)
 
@@ -190,7 +195,7 @@ function normalizeVariables(raw: unknown): StoryVariable[] {
       id,
       name:
         asString(item.name).trim().slice(0, 40) ||
-        `变量 ${index + 1}`,
+        tCurrent('lib.variableNumber', { count: index + 1 }),
       kind,
       initialValue,
       description: asString(item.description).trim().slice(0, 160),
@@ -297,20 +302,25 @@ function normalizeOptions(
     let id = asString(record.id).trim()
     if (!id) id = createId('option')
     if (seen.has(id)) {
-      throw new Error(`选项 ID 重复：${id}`)
+      throw new Error(tCurrent('lib.duplicateOptionId', { id }))
     }
     seen.add(id)
 
     options.push({
       id,
       label:
-        asString(record.label).trim().slice(0, 60) || `选项 ${index + 1}`,
+        asString(record.label).trim().slice(0, 60) ||
+        tCurrent('lib.optionNumber', { index: index + 1 }),
       effects: normalizeEffects(record.effects, variables),
     })
   })
 
   if (options.length === 0) {
-    options.push({ id: createId('option'), label: '选项 A', effects: [] })
+    options.push({
+      id: createId('option'),
+      label: tCurrent('lib.optionNumber', { index: 'A' }),
+      effects: [],
+    })
   }
 
   return options
@@ -321,7 +331,9 @@ function normalizeNodes(
   variables: StoryVariable[],
 ): StoryNode[] {
   if (rawNodes.length > MAX_NODES) {
-    throw new Error(`节点数量过多（最多 ${MAX_NODES} 个）`)
+    throw new Error(
+      tCurrent('lib.tooManyNodes', { count: MAX_NODES }),
+    )
   }
 
   const seenIds = new Set<string>()
@@ -329,18 +341,22 @@ function normalizeNodes(
 
   rawNodes.forEach((item, index) => {
     if (!isRecord(item)) {
-      throw new Error(`第 ${index + 1} 个节点格式不正确`)
+      throw new Error(
+        tCurrent('lib.invalidNode', { index: index + 1 }),
+      )
     }
 
     const type = item.type
     if (type !== 'scene' && type !== 'choice' && type !== 'condition') {
-      throw new Error(`第 ${index + 1} 个节点类型不支持`)
+      throw new Error(
+        tCurrent('lib.unsupportedNode', { index: index + 1 }),
+      )
     }
 
     let id = asString(item.id).trim()
     if (!id) id = createId(type)
     if (seenIds.has(id)) {
-      throw new Error(`节点 ID 重复：${id}`)
+      throw new Error(tCurrent('lib.duplicateNodeId', { id }))
     }
     seenIds.add(id)
 
@@ -356,7 +372,10 @@ function normalizeNodes(
         position: { x, y },
         data: {
           kind: 'scene',
-          title: safeTitle(data.title, `场景 ${index + 1}`),
+          title: safeTitle(
+            data.title,
+            tCurrent('lib.sceneNumber', { count: index + 1 }),
+          ),
           content: sanitizeContent(
             asString(data.content).slice(0, MAX_CONTENT_LENGTH),
           ),
@@ -375,7 +394,10 @@ function normalizeNodes(
         position: { x, y },
         data: {
           kind: 'choice',
-          title: safeTitle(data.title, `选择 ${index + 1}`),
+          title: safeTitle(
+            data.title,
+            tCurrent('lib.choiceNumber', { count: index + 1 }),
+          ),
           options: normalizeOptions(data.options, variables),
         },
       }
@@ -389,7 +411,10 @@ function normalizeNodes(
       position: { x, y },
       data: {
         kind: 'condition',
-        title: safeTitle(data.title, `条件 ${index + 1}`),
+        title: safeTitle(
+          data.title,
+          tCurrent('lib.conditionNumber', { count: index + 1 }),
+        ),
         cases: normalizeConditionCases(data.cases, variables),
       },
     }
@@ -405,7 +430,9 @@ function normalizeEdges(
   variables: StoryVariable[],
 ): StoryEdge[] {
   if (rawEdges.length > MAX_EDGES) {
-    throw new Error(`连线数量过多（最多 ${MAX_EDGES} 条）`)
+    throw new Error(
+      tCurrent('lib.tooManyEdges', { count: MAX_EDGES }),
+    )
   }
 
   const nodeMap = new Map(nodes.map((node) => [node.id, node]))
@@ -415,7 +442,9 @@ function normalizeEdges(
 
   rawEdges.forEach((item, index) => {
     if (!isRecord(item)) {
-      throw new Error(`第 ${index + 1} 条连线格式不正确`)
+      throw new Error(
+        tCurrent('lib.invalidEdge', { index: index + 1 }),
+      )
     }
 
     const sourceId = asString(item.source).trim()
@@ -424,10 +453,14 @@ function normalizeEdges(
     const targetNode = nodeMap.get(targetId)
 
     if (!sourceNode || !targetNode) {
-      throw new Error(`第 ${index + 1} 条连线指向了不存在的节点`)
+      throw new Error(
+        tCurrent('lib.edgeMissingNode', { index: index + 1 }),
+      )
     }
     if (sourceId === targetId) {
-      throw new Error(`第 ${index + 1} 条连线不能连接节点自身`)
+      throw new Error(
+        tCurrent('lib.edgeSelf', { index: index + 1 }),
+      )
     }
 
     let sourceHandle = asString(item.sourceHandle).trim() || null
@@ -441,7 +474,9 @@ function normalizeEdges(
         (candidate) => candidate.id === sourceHandle,
       )
       if (!option) {
-        throw new Error(`第 ${index + 1} 条连线指向了不存在的选项`)
+        throw new Error(
+          tCurrent('lib.edgeMissingOption', { index: index + 1 }),
+        )
       }
       sourceHandle = option.id
       optionId = option.id
@@ -449,13 +484,17 @@ function normalizeEdges(
     } else if (sourceNode.type === 'condition') {
       if (sourceHandle === 'else') {
         conditionCaseId = 'else'
-        conditionLabel = '否则'
+        conditionLabel = tCurrent('lib.else')
       } else {
         const condition = sourceNode.data.cases.find(
           (candidate) => candidate.id === sourceHandle,
         )
         if (!condition) {
-          throw new Error(`第 ${index + 1} 条连线指向了不存在的条件规则`)
+          throw new Error(
+            tCurrent('lib.edgeMissingCondition', {
+              index: index + 1,
+            }),
+          )
         }
         conditionCaseId = condition.id
         conditionLabel = formatConditionCase(condition, variables)
@@ -466,14 +505,14 @@ function normalizeEdges(
 
     const connectionKey = `${sourceId}\u0000${sourceHandle ?? ''}`
     if (usedSourceConnections.has(connectionKey)) {
-      throw new Error('同一出口存在重复连线')
+      throw new Error(tCurrent('lib.duplicateConnection'))
     }
     usedSourceConnections.add(connectionKey)
 
     let edgeId = asString(item.id).trim()
     if (!edgeId) edgeId = createId('edge')
     if (usedEdgeIds.has(edgeId)) {
-      throw new Error(`连线 ID 重复：${edgeId}`)
+      throw new Error(tCurrent('lib.duplicateEdgeId', { id: edgeId }))
     }
     usedEdgeIds.add(edgeId)
 
@@ -504,22 +543,22 @@ function normalizeEdges(
 
 export function parseProjectJson(text: string): StorySnapshot {
   if (text.length > MAX_PROJECT_FILE_BYTES) {
-    throw new Error('工程文件过大，无法导入')
+    throw new Error(tCurrent('lib.projectTooLarge'))
   }
 
   let raw: unknown
   try {
     raw = JSON.parse(text)
   } catch {
-    throw new Error('文件不是有效的 JSON')
+    throw new Error(tCurrent('lib.invalidJson'))
   }
 
   if (!isRecord(raw)) {
-    throw new Error('工程文件顶层格式不正确')
+    throw new Error(tCurrent('lib.invalidProjectRoot'))
   }
 
   if (raw.format != null && raw.format !== PROJECT_FORMAT) {
-    throw new Error('这不是 GalFlow 工程文件')
+    throw new Error(tCurrent('lib.notGalFlowProject'))
   }
 
   if (
@@ -527,12 +566,12 @@ export function parseProjectJson(text: string): StorySnapshot {
     raw.version > PROJECT_VERSION
   ) {
     throw new Error(
-      `工程文件版本过新（v${raw.version}），请更新 GalFlow 后再导入`,
+      tCurrent('lib.projectTooNew', { version: raw.version }),
     )
   }
 
   if (!Array.isArray(raw.nodes) || !Array.isArray(raw.edges)) {
-    throw new Error('工程文件缺少 nodes 或 edges 数据')
+    throw new Error(tCurrent('lib.projectMissingData'))
   }
 
   const variables = normalizeVariables(raw.variables)
@@ -541,7 +580,8 @@ export function parseProjectJson(text: string): StorySnapshot {
 
   return {
     title:
-      asString(raw.title).trim().slice(0, 120) || '导入的剧情',
+      asString(raw.title).trim().slice(0, 120) ||
+      tCurrent('lib.importedStory'),
     variables,
     nodes,
     edges,
@@ -554,7 +594,7 @@ export function serializeProject(snapshot: StorySnapshot): string {
     version: PROJECT_VERSION,
     app: 'GalFlow',
     exportedAt: new Date().toISOString(),
-    title: snapshot.title.trim() || '未命名剧情',
+    title: snapshot.title.trim() || tCurrent('lib.untitledStory'),
     variables: snapshot.variables,
     nodes: snapshot.nodes.map((node) => ({
       id: node.id,
@@ -577,5 +617,7 @@ export function serializeProject(snapshot: StorySnapshot): string {
 }
 
 export function buildProjectFileName(title: string): string {
-  return `${safeBaseName(title)}_GalFlow工程.galflow.json`
+  return `${safeBaseName(title)}_${tCurrent(
+    'lib.projectFileNameSuffix',
+  )}.galflow.json`
 }

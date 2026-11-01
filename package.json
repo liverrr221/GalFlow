@@ -16,6 +16,7 @@
     "smoke:share": "node scripts/share-smoke.mjs",
     "smoke:variables": "node scripts/variables-smoke.mjs",
     "smoke:canvases": "node scripts/canvas-smoke.mjs",
+    "smoke:i18n": "node scripts/i18n-smoke.mjs",
     "smoke:desktop": "node scripts/electron-smoke.mjs",
     "desktop": "npm run build && electron .",
     "desktop:build": "npm run build && node scripts/build-desktop.mjs",
