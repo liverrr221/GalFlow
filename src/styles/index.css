@@ -1,0 +1,363 @@
+@import './tokens.css';
+@import './topbar.css';
+@import './flow.css';
+@import './inspector.css';
+@import './editor.css';
+@import './fullscreen.css';
+@import './dialogs.css';
+@import './share.css';
+@import './variables.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(210, 75, 119, 0.22);
+}
+
+:focus-visible {
+  outline: 2px solid rgba(210, 75, 119, 0.65);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d8cdc3;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c5b7ab;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.app-shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% -10%, rgba(210, 75, 119, 0.08), transparent 30%),
+    radial-gradient(circle at 92% 4%, rgba(112, 88, 200, 0.06), transparent 28%),
+    var(--bg);
+}
+
+.workspace {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.button--primary {
+  border-color: #28232e;
+  background: linear-gradient(135deg, #37303d, #221e29);
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(35, 29, 40, 0.18);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #433a4a, #2b2533);
+  box-shadow: 0 7px 18px rgba(35, 29, 40, 0.23);
+}
+
+.button--primary:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+.button--soft {
+  border-color: #f0d7e0;
+  background: var(--rose-wash);
+  color: var(--rose-deep);
+}
+
+.button--soft:hover {
+  border-color: #e9c1d1;
+  background: #fbe9f0;
+}
+
+.button--ghost {
+  border-color: var(--line-strong);
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+.button--ghost:hover {
+  border-color: #c9b9ad;
+  background: var(--surface-soft);
+  color: var(--ink);
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-soft);
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.icon-button:hover {
+  background: var(--surface-soft);
+  color: var(--ink);
+}
+
+.icon-button--soft {
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+.icon-button--soft:hover {
+  border-color: var(--line-strong);
+}
+
+.icon-button--tiny {
+  width: 27px;
+  height: 27px;
+  border-radius: 7px;
+  color: var(--muted);
+}
+
+.icon-button--tiny:hover:not(:disabled) {
+  background: var(--rose-wash);
+  color: var(--rose-deep);
+}
+
+.icon-button:disabled {
+  opacity: 0.3;
+}
+
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  color: var(--rose-deep);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.text-button:hover {
+  color: var(--rose);
+}
+
+.field-label {
+  display: inline-block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.text-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  outline: none;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.text-input::placeholder {
+  color: var(--faint);
+}
+
+.text-input:hover {
+  border-color: var(--line-strong);
+}
+
+.text-input:focus {
+  border-color: rgba(210, 75, 119, 0.6);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(210, 75, 119, 0.09);
+}
+
+.text-input--title {
+  height: 41px;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 38px;
+  border: 1px solid #efd7d5;
+  border-radius: 9px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.danger-button:hover {
+  border-color: #e5bcb8;
+  background: #fbe9e7;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

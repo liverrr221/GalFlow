@@ -1,0 +1,52 @@
+:root {
+  color-scheme: light;
+  --font-ui:
+    'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-reading:
+    'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun',
+    serif;
+  --font-mono:
+    ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas,
+    'Noto Sans Mono CJK SC', monospace;
+
+  --bg: #f3eee7;
+  --canvas: #f3efe8;
+  --surface: #fffdf9;
+  --surface-soft: #faf6f0;
+  --surface-sunken: #f5efe8;
+
+  --ink: #2c2732;
+  --ink-soft: #605868;
+  --muted: #948c96;
+  --faint: #b8b0b5;
+
+  --line: #e8dfd5;
+  --line-strong: #d9cdc1;
+
+  --rose: #d24b77;
+  --rose-deep: #b3365d;
+  --rose-soft: #fce8ef;
+  --rose-wash: #fdf4f7;
+
+  --violet: #7058c8;
+  --violet-deep: #5842ac;
+  --violet-soft: #f0ecfb;
+
+  --green: #5e8a70;
+  --gold: #b88432;
+  --danger: #b94747;
+  --danger-soft: #fdf2f1;
+
+  --shadow-xs: 0 1px 2px rgba(57, 45, 36, 0.06);
+  --shadow-sm:
+    0 2px 5px rgba(57, 45, 36, 0.05), 0 10px 24px rgba(57, 45, 36, 0.05);
+  --shadow-md:
+    0 8px 18px rgba(57, 45, 36, 0.07), 0 24px 50px rgba(57, 45, 36, 0.08);
+  --shadow-lg:
+    0 18px 40px rgba(45, 35, 45, 0.16), 0 50px 100px rgba(45, 35, 45, 0.12);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+}

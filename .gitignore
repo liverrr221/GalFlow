@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+dist-ssr/
+release/
+out/
+*.tsbuildinfo
+
+# Local run artifacts and test output
+.artifacts/
+coverage/
+playwright-report/
+test-results/
+*.log
+npm-debug.log*
+
+# Local project exports and personal story files
+# These are intentionally not part of the public repository.
+gal.md
+*.galflow.json
+*.galflow.project.json
+*_剧情流程.txt
+/*.txt
+/*.png
+/*.jpg
+/*.jpeg
+/*.zip
+/*.7z
+/*.exe
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.local
+
+# Installer / archive output
+*.zip
+*.7z
+*.rar
+*.exe
+*.msi
+*.dmg
+*.AppImage
